@@ -1,0 +1,10 @@
+-xcuda
+-DMAXLOGLEVEL=5
+-std=c++14
+-O3
+-I/usr/local/cuda/include
+-I/usr/include/python3.8
+-Ipybind11/include
+-I../source/uammd/src
+-I../source/uammd/src/third_party
+--cuda-path=/usr/local/cuda
