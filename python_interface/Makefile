@@ -9,7 +9,7 @@ NVCC=$(CUDA_ROOT)/bin/nvcc
 #UAMMD can be quite verbose, 5 shows only some messages at initialization/exit, 0 will only print critical errors, 15will print A LOT.
 VERBOSITY=0
 #Uncomment for double precision, UAMMD is compiled in single by default
-#DOUBLEPRECISION=-DDOUBLE_PRECISION
+DOUBLEPRECISION=-DDOUBLE_PRECISION
 #In case you prefer to import with other name
 MODULE_NAME=uammd
 INCLUDE_FLAGS= -I$(CUDA_ROOT)/include -I$(UAMMD_ROOT)/src -I$(UAMMD_ROOT)/src/third_party `$(PYTHON)-config --includes` -I $(PYBIND_ROOT)/include/

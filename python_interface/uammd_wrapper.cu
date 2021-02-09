@@ -9,10 +9,27 @@
 #include<pybind11/numpy.h>
 #include <uammd.cuh>
 #include <Integrator/BDHI/DoublyPeriodic/DPStokesSlab.cuh>
+#include <Integrator/BDHI/BDHI_FCM.cuh>
+
 
 namespace py = pybind11;
+using uammd::BDHI::FCM;
 using DPStokesSlab = uammd::DPStokesSlab_ns::DPStokes;
-using Parameters = DPStokesSlab::Parameters;
+using uammd::DPStokesSlab_ns::WallMode;
+
+using real = uammd::real;
+struct PyParameters{
+  int nxy, nz;
+  real dt;
+  real viscosity;
+  real Lxy;
+  real H;
+  real tolerance = 1e-7;
+  real gw;
+  int support = -1; //-1 means auto compute from tolerance
+  //Can be either none, bottom, slit or periodic
+  std::string mode;
+};
 
 struct Real3ToReal4{
   __host__ __device__ uammd::real4 operator()(uammd::real3 i){
@@ -27,33 +44,87 @@ struct Real4ToReal3{
   }
 };
 
+FCM::Parameters createFCMParameters(PyParameters pypar){
+  FCM::Parameters par;
+  par.temperature = 0;
+  par.viscosity = pypar.viscosity;  
+  par.tolerance = 1e-5;
+  par.box = uammd::Box({pypar.Lxy, pypar.Lxy, pypar.H});
+  par.cells = {pypar.nxy, pypar.nxy, pypar.nz};
+  return par;
+}
+
+WallMode stringToWallMode(std::string str){
+  if(str.compare("nowall") == 0){
+    return WallMode::none;
+  }
+  else if(str.compare("slit") == 0){
+    return WallMode::slit;
+  }
+  else if(str.compare("bottom") == 0){
+    return WallMode::bottom;
+  }
+  else return WallMode::none;
+}
+
+DPStokesSlab::Parameters createDPStokesParameters(PyParameters pypar){
+  DPStokesSlab::Parameters par;
+  par.nxy         = pypar.nxy;
+  par.nz	  = pypar.nz;
+  par.dt	  = pypar.dt;
+  par.viscosity	  = pypar.viscosity;
+  par.Lxy	  = pypar.Lxy;
+  par.H		  = pypar.H;
+  par.gw	  = pypar.gw;
+  par.support 	  = pypar.support;
+  par.mode = stringToWallMode(pypar.mode);
+  return par;
+}
+
 struct UAMMD {
-  using real = uammd::real;
   std::shared_ptr<DPStokesSlab> dpstokes;
+  std::shared_ptr<FCM> fcm;
   std::shared_ptr<uammd::System> sys;
+  std::shared_ptr<uammd::ParticleData> pd;
   int numberParticles;
   cudaStream_t st;
-  thrust::device_vector<uammd::real4> pos, force;
   thrust::device_vector<uammd::real3> tmp;
-  UAMMD(Parameters par, int numberParticles): numberParticles(numberParticles){
+  UAMMD(PyParameters pypar, int numberParticles): numberParticles(numberParticles){
     this->sys = std::make_shared<uammd::System>();
-    this->dpstokes = std::make_shared<DPStokesSlab>(par);
+    this->pd = std::make_shared<uammd::ParticleData>(numberParticles, sys);
+    if(pypar.mode.compare("periodic")==0){
+      auto par = createFCMParameters(pypar);
+      this->fcm = std::make_shared<FCM>(pd, sys, par);
+    }
+    else{
+      auto par = createDPStokesParameters(pypar);
+      this->dpstokes = std::make_shared<DPStokesSlab>(par);
+    }
     CudaSafeCall(cudaStreamCreate(&st));
   }
 
   void Mdot(py::array_t<real> h_pos, py::array_t<real> h_forces, py::array_t<real> h_MF){
-    pos.resize(numberParticles);
-    force.resize(numberParticles);
     tmp.resize(numberParticles);
-    thrust::copy((uammd::real3*)h_pos.data(), (uammd::real3*)h_pos.data() + numberParticles, tmp.begin());
-    thrust::transform(tmp.begin(), tmp.end(), pos.begin(), Real3ToReal4());
-    thrust::copy((uammd::real3*)h_forces.data(), (uammd::real3*)h_forces.data() + numberParticles, tmp.begin());
-    thrust::transform(tmp.begin(), tmp.end(), force.begin(), Real3ToReal4());
-    auto d_pos = thrust::raw_pointer_cast(pos.data());
-    auto d_force = thrust::raw_pointer_cast(force.data());
-    auto MF = dpstokes->Mdot(d_pos, d_force, numberParticles, st);
-    auto MF_real3 = thrust::make_transform_iterator(MF.begin(), Real4ToReal3());
-    thrust::copy(MF_real3, MF_real3 + numberParticles, (uammd::real3*)h_MF.mutable_data());
+    {
+      auto pos = pd->getPos(uammd::access::gpu, uammd::access::write);
+      auto force = pd->getForce(uammd::access::gpu, uammd::access::write);
+      std::copy((uammd::real3*)h_pos.data(), (uammd::real3*)h_pos.data() + numberParticles, tmp.begin());
+      thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), pos.begin(), Real3ToReal4());
+      std::copy((uammd::real3*)h_forces.data(), (uammd::real3*)h_forces.data() + numberParticles, tmp.begin());
+      thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), force.begin(), Real3ToReal4());
+    }
+    auto force = pd->getForce(uammd::access::gpu, uammd::access::read);    
+    if(fcm){
+      auto tmp_ptr = thrust::raw_pointer_cast(tmp.data());
+      fcm->Mdot(tmp_ptr, force.raw(), 0);
+      thrust::copy(tmp.begin(), tmp.end(), (uammd::real3*)h_MF.mutable_data());
+    }
+    else if(dpstokes){
+      auto pos = pd->getPos(uammd::access::gpu, uammd::access::read);
+      auto MF = dpstokes->Mdot(pos.raw(), force.raw(), numberParticles, st);
+      auto MF_real3 = thrust::make_transform_iterator(MF.begin(), Real4ToReal3());
+      thrust::copy(MF_real3, MF_real3 + numberParticles, (uammd::real3*)h_MF.mutable_data());
+    }
   }
   
   ~UAMMD(){
@@ -66,45 +137,58 @@ struct UAMMD {
 
 using namespace pybind11::literals;
 
+
+std::string wallModeToString(WallMode mode){
+  switch(mode){
+  case WallMode::none:
+    return "no wall";
+  case WallMode::slit:
+    return "slit channel";
+  case WallMode::bottom:
+    return "bottom wall";
+  };
+}
+
 PYBIND11_MODULE(uammd, m) {
   m.doc() = "UAMMD DPStokes Python interface";
   py::class_<UAMMD>(m, "DPStokes").
-    def(py::init<Parameters, int>(),"Parameters"_a, "numberParticles"_a).
+    def(py::init<PyParameters, int>(),"Parameters"_a, "numberParticles"_a).
     def("Mdot", &UAMMD::Mdot, "Computes the product of the Mobility tensor with a provided array",
 	"positions"_a,"forces"_a,"result"_a);
   
-  py::class_<uammd::Box>(m, "Box").
-    def(py::init<uammd::real>()).
-    def(py::init([](uammd::real x, uammd::real y, uammd::real z) {
-      return std::unique_ptr<uammd::Box>(new uammd::Box(uammd::make_real3(x,y,z)));
-    }));
-
-  py::class_<Parameters>(m, "DPStokesParameters").
+  py::class_<PyParameters>(m, "StokesParameters").
     def(py::init([](uammd::real viscosity,
 		    uammd::real  Lxy, uammd::real H,
 		    uammd::real gw,
-		    int support, int Nxy, int nz) {             
-      auto tmp = std::unique_ptr<Parameters>(new Parameters);
+		    int support, int Nxy, int nz, std::string mode) {
+      auto tmp = std::unique_ptr<PyParameters>(new PyParameters);
       tmp->viscosity = viscosity;
-      tmp->box = uammd::Box(uammd::make_real3(Lxy, Lxy, H));
-      tmp->box.setPeriodicity(1,1,0);
+      tmp->Lxy = Lxy;
+      tmp->H = H;      
       tmp->gw = gw;
       tmp->support = support;
-      tmp->cells = make_int3(Nxy, Nxy, nz);
+      tmp->nxy = Nxy;
+      tmp->nz = nz;
+      tmp->mode = mode;
       return tmp;	
-    }),"viscosity"_a  = 1.0,"Lxy"_a = 0.0,"H"_a = 0.0,"gw"_a=1.0, "support"_a = -1, "Nxy"_a=-1, "nz"_a = -1).
-    def_readwrite("viscosity", &Parameters::viscosity).
-    def_readwrite("gw", &Parameters::gw).
-    def_readwrite("box", &Parameters::box).
-    def_readwrite("support", &Parameters::support).
-    def("__str__", [](const Parameters &p){
+    }),"viscosity"_a  = 1.0,"Lxy"_a = 0.0,"H"_a = 0.0,"gw"_a=1.0, "support"_a = -1, "Nxy"_a=-1, "nz"_a = -1, "mode"_a="none").
+    def_readwrite("viscosity", &PyParameters::viscosity, "Viscosity").
+    def_readwrite("gw", &PyParameters::gw, "Gaussian width of the sources").
+    def_readwrite("Lxy", &PyParameters::Lxy, "Domain size in the plane").
+    def_readwrite("H", &PyParameters::H, "Domain width").
+    def_readwrite("support", &PyParameters::support, "Number of support cells for spreading/interpolation").
+    def_readwrite("mode", &PyParameters::mode, "Domain walls mode, can be any of: none (no walls), bottom (wall at the bottom), slit (two walls) or periodic (uses force coupling method).").
+    def_readwrite("nz", &PyParameters::nz, "Number of cells in Z").
+    def_readwrite("nxy", &PyParameters::nxy, "Number of cells in XY").
+    def("__str__", [](const PyParameters &p){
       return"viscosity = " + std::to_string(p.viscosity) +"\n"+
 	"gw = " + std::to_string(p. gw)+ "\n" +
-	"box (L = " + std::to_string(p.box.boxSize.x) +
-	"," + std::to_string(p.box.boxSize.y) + "," + std::to_string(p.box.boxSize.z) + ")\n"+
+	"box (L = " + std::to_string(p.Lxy) +
+	"," + std::to_string(p.Lxy) + "," + std::to_string(p.H) + ")\n"+
 	"support = " + std::to_string(p. support)+ "\n" + 
-	"Nxy = " + std::to_string(p. cells.x) + "\n" +
-	"nz = " + std::to_string(p. cells.z) + "\n";
+	"Nxy = " + std::to_string(p. nxy) + "\n" +
+	"nz = " + std::to_string(p. nz) + "\n" +
+	"mode = " + p.mode + "\n";
     });
     
 }
