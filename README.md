@@ -17,7 +17,9 @@ Run make to compile, you might have to adapt it to your particular system before
   
 ### Python interface
 
-A python interface is provided that allows to compute the product between the mobility tensor (from a group of Gaussian sources) and a vector (i.e the force).  
+A python interface is provided that allows to compute the product between the mobility tensor (from a group of Gaussian sources) and a vector (i.e the force) in different geometries, mainly:  
+	* Doubly periodic (either with no walls, a bottom wall or a slit channel)  
+	* Triply periodic (using force coupling method)  
 This interface requires [pybind11](https://github.com/pybind/pybind11) to compile, which is included as a submodule and will be automatically downloaded if this repo is cloned recursively (see "About this repo" above).  
 In order to use it you must compile the python wrappers using make (doing ```make python``` or ```make all``` here will also compile the python library).  
 A file called uammd.*.so will be created and then "import uammd" can be used inside python. Notice that you might have to customize python\_interface/Makefile for your particular system.  
