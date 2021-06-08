@@ -37,5 +37,6 @@ The gw parameter will always be ignored (it comes from when a Gaussian was used)
 
 The triply periodic mode (FCM) will use a Gaussian, the tolerance parameter can be specified instead of the support (which will be autocomputed from it).  
 
-Other kernels can be used, but the interface does not allow them for the moment, since the specific kernel parameters are still a work in progress.
+Other kernels can be used, but the interface does not allow them for the moment, since the specific kernel parameters are still a work in progress.  
 
+The file dpstokes.py contains more info about this.
