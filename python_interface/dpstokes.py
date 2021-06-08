@@ -4,7 +4,7 @@
 # -FCM for triply periodic hydrodynamics
 #The parameters related with the spread/interp kernel are a little precarious now, waiting for a better unification
 #For DPStokes, I recomment setting nxy, nz and fix support=6. gw is ignored
-#For FCM, I recomend setting gw and tolerance and let the module compute nxy, nz and support accordingly.
+#For FCM, I recomend setting nxy, nz and tolerance and let the module compute the support accordingly.
 import numpy as np
 import uammd
 Lxy = 32
