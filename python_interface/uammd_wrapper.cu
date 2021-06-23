@@ -27,14 +27,19 @@ struct PyParameters{
   real dt;
   real viscosity;
   real Lxy;
-  real H;
-  //Tolerance will be ignored in DP mode
+  real zmin, zmax;
+  //Tolerance will be ignored in DP mode, TP will use only tolerance and nxy/nz
   real tolerance = 1e-7;
-  real gw; //Gaussian width, unused with the BM kernel and in TP
-  int support = -1; //-1 means auto compute from tolerance if possible (FCM can do this)
+  real w, w_d;
+  real hydrodynamicRadius;
+  real beta = -1;
+  real beta_d = -1;
+  real alpha = -1;
+  real alpha_d = -1;
   //Can be either none, bottom, slit or periodic
   std::string mode;
 };
+
 
 struct Real3ToReal4{
   __host__ __device__ uammd::real4 operator()(uammd::real3 i){
@@ -49,12 +54,21 @@ struct Real4ToReal3{
   }
 };
 
+struct Real3ToReal4SubstractOriginZ{
+  real origin;
+  Real3ToReal4SubstractOriginZ(real origin):origin(origin){}
+  __host__ __device__ uammd::real4 operator()(uammd::real3 i){
+    auto pr4 = uammd::make_real4(i);
+    pr4.z -= origin;
+    return pr4;
+  }
+};
 FCM::Parameters createFCMParameters(PyParameters pypar){
   FCM::Parameters par;
   par.temperature = 0; //FCM can compute fluctuations, but they are turned off here
   par.viscosity = pypar.viscosity;
   par.tolerance = pypar.tolerance;
-  par.box = uammd::Box({pypar.Lxy, pypar.Lxy, pypar.H});
+  par.box = uammd::Box({pypar.Lxy, pypar.Lxy, pypar.zmax- pypar.zmin});
   par.cells = {pypar.nxy, pypar.nxy, pypar.nz};
   return par;
 }
@@ -79,9 +93,14 @@ DPStokesSlab::Parameters createDPStokesParameters(PyParameters pypar){
   par.dt	  = pypar.dt;
   par.viscosity	  = pypar.viscosity;
   par.Lxy	  = pypar.Lxy;
-  par.H		  = pypar.H;
-  par.gw	  = pypar.gw;
-  par.support 	  = pypar.support;
+  par.H		  = pypar.zmax-pypar.zmin;
+  par.w = pypar.w;
+  par.w_d = pypar.w_d;
+  par.hydrodynamicRadius = pypar.hydrodynamicRadius;
+  par.beta = pypar.beta;
+  par.beta_d = pypar.beta_d;
+  par.alpha = pypar.alpha;
+  par.alpha_d = pypar.alpha_d;
   par.mode = stringToWallMode(pypar.mode);
   return par;
 }
@@ -94,16 +113,19 @@ struct UAMMD {
   int numberParticles;
   cudaStream_t st;
   thrust::device_vector<uammd::real3> tmp;
+  real zOrigin;
   UAMMD(PyParameters pypar, int numberParticles): numberParticles(numberParticles){
     this->sys = std::make_shared<uammd::System>();
     this->pd = std::make_shared<uammd::ParticleData>(numberParticles, sys);
     if(pypar.mode.compare("periodic")==0){
       auto par = createFCMParameters(pypar);
       this->fcm = std::make_shared<FCM>(pd, sys, par);
+      zOrigin = 0;
     }
     else{
       auto par = createDPStokesParameters(pypar);
       this->dpstokes = std::make_shared<DPStokesSlab>(par);
+      zOrigin = pypar.zmin + par.H*0.5;
     }
     CudaSafeCall(cudaStreamCreate(&st));
   }
@@ -117,7 +139,7 @@ struct UAMMD {
       auto pos = pd->getPos(uammd::access::gpu, uammd::access::write);
       auto force = pd->getForce(uammd::access::gpu, uammd::access::write);
       thrust::copy((uammd::real3*)h_pos.data(), (uammd::real3*)h_pos.data() + numberParticles, tmp.begin());
-      thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), pos.begin(), Real3ToReal4());
+      thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), pos.begin(), Real3ToReal4SubstractOriginZ(zOrigin));
       thrust::copy((uammd::real3*)h_forces.data(), (uammd::real3*)h_forces.data() + numberParticles, tmp.begin());
       thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), force.begin(), Real3ToReal4());
       if(useTorque){
@@ -181,34 +203,53 @@ PYBIND11_MODULE(uammd, m) {
   
   py::class_<PyParameters>(m, "StokesParameters").
     def(py::init([](uammd::real viscosity,
-		    uammd::real  Lxy, uammd::real H,
-		    uammd::real gw,
-		    int support, int Nxy, int nz, std::string mode) {
+		    uammd::real  Lxy, uammd::real zmin, uammd::real zmax,
+		    uammd::real w, uammd::real w_d,
+		    uammd::real alpha, uammd::real alpha_d,
+		    uammd::real beta, uammd::real beta_d,
+		    uammd::real hydrodynamicRadius,
+		    int Nxy, int nz, std::string mode) {
       auto tmp = std::unique_ptr<PyParameters>(new PyParameters);
       tmp->viscosity = viscosity;
       tmp->Lxy = Lxy;
-      tmp->H = H;      
-      tmp->gw = gw;
-      tmp->support = support;
+      tmp->zmin = zmin;
+      tmp->zmax = zmax;
       tmp->nxy = Nxy;
       tmp->nz = nz;
       tmp->mode = mode;
+      tmp->w = w;
+      tmp->w_d = w_d;
+      tmp->hydrodynamicRadius = hydrodynamicRadius;
+      tmp->beta =beta;
+      tmp->beta_d = beta_d;
+      tmp->alpha = alpha;
+      tmp->alpha_d = alpha_d;
       return tmp;	
-    }),"viscosity"_a  = 1.0,"Lxy"_a = 0.0,"H"_a = 0.0,"gw"_a=1.0, "support"_a = -1, "Nxy"_a=-1, "nz"_a = -1, "mode"_a="none").
+    }),"viscosity"_a  = 1.0,"Lxy"_a = 0.0,"zmin"_a = 0.0,"zmax"_a = 0.0,
+	"w"_a=1.0, "w_d"_a=1.0,
+	"alpha"_a = -1.0, "alpha_d"_a=-1.0,
+	"beta"_a = -1.0, "beta_d"_a=-1.0,
+	"hydrodynamicRadius"_a = 1.0,
+	"nxy"_a = -1, "nz"_a = -1, "mode"_a="none").
     def_readwrite("viscosity", &PyParameters::viscosity, "Viscosity").
-    def_readwrite("gw", &PyParameters::gw, "Gaussian width of the sources").
     def_readwrite("Lxy", &PyParameters::Lxy, "Domain size in the plane").
-    def_readwrite("H", &PyParameters::H, "Domain width").
-    def_readwrite("support", &PyParameters::support, "Number of support cells for spreading/interpolation").
+    def_readwrite("zmin", &PyParameters::zmin, "Minimum height of a particle (or bottom wall location)").
+    def_readwrite("zmax", &PyParameters::zmax, "Maximum height of a particle (or top wall location)").
     def_readwrite("mode", &PyParameters::mode, "Domain walls mode, can be any of: none (no walls), bottom (wall at the bottom), slit (two walls) or periodic (uses force coupling method).").
     def_readwrite("nz", &PyParameters::nz, "Number of cells in Z").
     def_readwrite("nxy", &PyParameters::nxy, "Number of cells in XY").
+    def_readwrite("alpha", &PyParameters::alpha, "ES kernel monopole alpha").
+    def_readwrite("alpha_d", &PyParameters::alpha_d, "ES kernel dipole alpha").
+    def_readwrite("beta", &PyParameters::beta, "ES kernel monopole beta").
+    def_readwrite("beta_d", &PyParameters::beta_d, "ES kernel dipole beta").
+    def_readwrite("w", &PyParameters::w, "ES kernel monopole width").
+    def_readwrite("w_d", &PyParameters::w_d, "ES kernel dipole width").
+    def_readwrite("hydrodynamicRadius", &PyParameters::hydrodynamicRadius, "Hydrodynamic radius").
     def("__str__", [](const PyParameters &p){
       return"viscosity = " + std::to_string(p.viscosity) +"\n"+
-	"gw = " + std::to_string(p. gw)+ "\n" +
 	"box (L = " + std::to_string(p.Lxy) +
-	"," + std::to_string(p.Lxy) + "," + std::to_string(p.H) + ")\n"+
-	"support = " + std::to_string(p. support)+ "\n" + 
+	"," + std::to_string(p.Lxy) + "," +
+	std::to_string(p.zmin) + ":" + std::to_string(p.zmax) +" )\n"+
 	"Nxy = " + std::to_string(p. nxy) + "\n" +
 	"nz = " + std::to_string(p. nz) + "\n" +
 	"mode = " + p.mode + "\n";
