@@ -7,7 +7,7 @@
 #For FCM, I recomend setting nxy, nz and tolerance and let the module compute the support accordingly.
 import numpy as np
 import uammd
-Lxy = 32.0
+Lx = Ly = 32.0
 H=32.0
 mode='slit'
 #mode='bottom'   #Bottom wall geometry
@@ -19,7 +19,7 @@ hydrodynamicRadius = 1.0;
 viscosity = 1/(6*np.pi);
 
 #Number of grid points in the plane
-nxy = 48;
+nx = ny = 48;
 #Number of grid points in the chebyshev grid (just nz, not (2*nz-2))
 nz = 92;
 #Width of ES kernel
@@ -29,17 +29,17 @@ w_d = 6.0;
 beta =2*np.pi;
 beta_d = 2*np.pi;
 #Alpha parameter of ES kernel
-h=Lxy/nxy
+h=Lx/nx
 alpha = w*h*0.5;
 alpha_d = w_d*h*0.5;
 par = uammd.StokesParameters(viscosity=viscosity,
-                             Lxy=Lxy,
+                             Lx=Lx,Ly=Ly,
                              zmin=-H*0.5, zmax=H*0.5,
                              w=w, w_d=w_d,
                              alpha=alpha, alpha_d=alpha_d,
                              beta=beta, beta_d=beta_d,
                              hydrodynamicRadius=hydrodynamicRadius,
-                             nxy = 48, nz=92, mode=mode)
+                             nx=nx, ny=ny, nz=nz, mode=mode)
 print(par)
 numberParticles = 2
 dpstokes = uammd.DPStokes(par, numberParticles)

@@ -22,11 +22,13 @@ using real = uammd::real;
 struct PyParameters{
   //The number of cells in each direction
   //If -1, they will be autocomputed from the tolerance if possible (DP cannot do it, FCM can)
-  int nxy = -1;
+  int nx = -1;
+  int ny = -1;
   int nz = -1;
   real dt;
   real viscosity;
-  real Lxy;
+  real Lx;
+  real Ly;
   real zmin, zmax;
   //Tolerance will be ignored in DP mode, TP will use only tolerance and nxy/nz
   real tolerance = 1e-7;
@@ -68,8 +70,8 @@ FCM::Parameters createFCMParameters(PyParameters pypar){
   par.temperature = 0; //FCM can compute fluctuations, but they are turned off here
   par.viscosity = pypar.viscosity;
   par.tolerance = pypar.tolerance;
-  par.box = uammd::Box({pypar.Lxy, pypar.Lxy, pypar.zmax- pypar.zmin});
-  par.cells = {pypar.nxy, pypar.nxy, pypar.nz};
+  par.box = uammd::Box({pypar.Lx, pypar.Ly, pypar.zmax- pypar.zmin});
+  par.cells = {pypar.nx, pypar.ny, pypar.nz};
   return par;
 }
 
@@ -88,11 +90,13 @@ WallMode stringToWallMode(std::string str){
 
 DPStokesSlab::Parameters createDPStokesParameters(PyParameters pypar){
   DPStokesSlab::Parameters par;
-  par.nxy         = pypar.nxy;
+  par.nx         = pypar.nx;
+  par.ny         = pypar.ny;
   par.nz	  = pypar.nz;
   par.dt	  = pypar.dt;
   par.viscosity	  = pypar.viscosity;
-  par.Lxy	  = pypar.Lxy;
+  par.Lx	  = pypar.Lx;
+  par.Ly	  = pypar.Ly;
   par.H		  = pypar.zmax-pypar.zmin;
   par.w = pypar.w;
   par.w_d = pypar.w_d;
@@ -203,18 +207,20 @@ PYBIND11_MODULE(uammd, m) {
   
   py::class_<PyParameters>(m, "StokesParameters").
     def(py::init([](uammd::real viscosity,
-		    uammd::real  Lxy, uammd::real zmin, uammd::real zmax,
+		    uammd::real  Lx, uammd::real Ly, uammd::real zmin, uammd::real zmax,
 		    uammd::real w, uammd::real w_d,
 		    uammd::real alpha, uammd::real alpha_d,
 		    uammd::real beta, uammd::real beta_d,
 		    uammd::real hydrodynamicRadius,
-		    int Nxy, int nz, std::string mode) {
+		    int Nx, int Ny, int nz, std::string mode) {
       auto tmp = std::unique_ptr<PyParameters>(new PyParameters);
       tmp->viscosity = viscosity;
-      tmp->Lxy = Lxy;
+      tmp->Lx = Lx;
+      tmp->Ly = Ly;
       tmp->zmin = zmin;
       tmp->zmax = zmax;
-      tmp->nxy = Nxy;
+      tmp->nx = Nx;
+      tmp->ny = Ny;
       tmp->nz = nz;
       tmp->mode = mode;
       tmp->w = w;
@@ -225,19 +231,21 @@ PYBIND11_MODULE(uammd, m) {
       tmp->alpha = alpha;
       tmp->alpha_d = alpha_d;
       return tmp;	
-    }),"viscosity"_a  = 1.0,"Lxy"_a = 0.0,"zmin"_a = 0.0,"zmax"_a = 0.0,
+    }),"viscosity"_a  = 1.0,"Lx"_a = 0.0, "Ly"_a = 0.0, "zmin"_a = 0.0,"zmax"_a = 0.0,
 	"w"_a=1.0, "w_d"_a=1.0,
 	"alpha"_a = -1.0, "alpha_d"_a=-1.0,
 	"beta"_a = -1.0, "beta_d"_a=-1.0,
 	"hydrodynamicRadius"_a = 1.0,
-	"nxy"_a = -1, "nz"_a = -1, "mode"_a="none").
+	"nx"_a = -1,"ny"_a = -1, "nz"_a = -1, "mode"_a="none").
     def_readwrite("viscosity", &PyParameters::viscosity, "Viscosity").
-    def_readwrite("Lxy", &PyParameters::Lxy, "Domain size in the plane").
+    def_readwrite("Lx", &PyParameters::Lx, "Domain size in the plane").
+    def_readwrite("Ly", &PyParameters::Ly, "Domain size in the plane").
     def_readwrite("zmin", &PyParameters::zmin, "Minimum height of a particle (or bottom wall location)").
     def_readwrite("zmax", &PyParameters::zmax, "Maximum height of a particle (or top wall location)").
     def_readwrite("mode", &PyParameters::mode, "Domain walls mode, can be any of: none (no walls), bottom (wall at the bottom), slit (two walls) or periodic (uses force coupling method).").
     def_readwrite("nz", &PyParameters::nz, "Number of cells in Z").
-    def_readwrite("nxy", &PyParameters::nxy, "Number of cells in XY").
+    def_readwrite("nx", &PyParameters::nx, "Number of cells in X").
+    def_readwrite("ny", &PyParameters::ny, "Number of cells in Y").
     def_readwrite("alpha", &PyParameters::alpha, "ES kernel monopole alpha").
     def_readwrite("alpha_d", &PyParameters::alpha_d, "ES kernel dipole alpha").
     def_readwrite("beta", &PyParameters::beta, "ES kernel monopole beta").
@@ -247,10 +255,11 @@ PYBIND11_MODULE(uammd, m) {
     def_readwrite("hydrodynamicRadius", &PyParameters::hydrodynamicRadius, "Hydrodynamic radius").
     def("__str__", [](const PyParameters &p){
       return"viscosity = " + std::to_string(p.viscosity) +"\n"+
-	"box (L = " + std::to_string(p.Lxy) +
-	"," + std::to_string(p.Lxy) + "," +
+	"box (L = " + std::to_string(p.Lx) +
+	"," + std::to_string(p.Ly) + "," +
 	std::to_string(p.zmin) + ":" + std::to_string(p.zmax) +" )\n"+
-	"Nxy = " + std::to_string(p. nxy) + "\n" +
+	"Nx = " + std::to_string(p.nx) + "\n" +
+	"Ny = " + std::to_string(p.ny) + "\n" +
 	"nz = " + std::to_string(p. nz) + "\n" +
 	"mode = " + p.mode + "\n";
     });
