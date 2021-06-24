@@ -31,9 +31,9 @@ struct PyParameters{
   real Ly;
   real zmin, zmax;
   //Tolerance will be ignored in DP mode, TP will use only tolerance and nxy/nz
-  real tolerance = 1e-7;
+  real tolerance = 1e-5;
   real w, w_d;
-  real hydrodynamicRadius;
+  real hydrodynamicRadius = -1;
   real beta = -1;
   real beta_d = -1;
   real alpha = -1;
@@ -70,6 +70,7 @@ FCM::Parameters createFCMParameters(PyParameters pypar){
   par.temperature = 0; //FCM can compute fluctuations, but they are turned off here
   par.viscosity = pypar.viscosity;
   par.tolerance = pypar.tolerance;
+  par.hydrodynamicRadius = pypar.hydrodynamicRadius;
   par.box = uammd::Box({pypar.Lx, pypar.Ly, pypar.zmax- pypar.zmin});
   par.cells = {pypar.nx, pypar.ny, pypar.nz};
   return par;
@@ -235,7 +236,7 @@ PYBIND11_MODULE(uammd, m) {
 	"w"_a=1.0, "w_d"_a=1.0,
 	"alpha"_a = -1.0, "alpha_d"_a=-1.0,
 	"beta"_a = -1.0, "beta_d"_a=-1.0,
-	"hydrodynamicRadius"_a = 1.0,
+	"hydrodynamicRadius"_a = -1.0,
 	"nx"_a = -1,"ny"_a = -1, "nz"_a = -1, "mode"_a="none").
     def_readwrite("viscosity", &PyParameters::viscosity, "Viscosity").
     def_readwrite("Lx", &PyParameters::Lx, "Domain size in the plane").

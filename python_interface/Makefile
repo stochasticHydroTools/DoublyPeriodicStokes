@@ -7,7 +7,7 @@ LAPACKE_FLAGS=-llapacke -I/usr/include/lapacke
 #MKL_FLAGS=-DUSE_MKL -DMKL_ILP64 -m64 -I${MKLROOT}/include -L${MKLROOT}/lib/intel64  -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
 NVCC=$(CUDA_ROOT)/bin/nvcc
 #UAMMD can be quite verbose, 5 shows only some messages at initialization/exit, 0 will only print critical errors, 15will print A LOT.
-VERBOSITY=0
+VERBOSITY=3
 #Uncomment for double precision, UAMMD is compiled in single by default
 DOUBLEPRECISION=-DDOUBLE_PRECISION
 #In case you prefer to import with other name
