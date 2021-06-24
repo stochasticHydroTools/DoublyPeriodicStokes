@@ -33,10 +33,11 @@ Once compiled you can use "help(uammd)" for additional usage information.
 ## About the spreading/interpolation kernels in the python interface
 
 The doubly periodic options will use the ES kernel (called BM in UAMMD), in this case the tolerance parameter will be ignored and the support must be specified.  
-The gw parameter will always be ignored (it comes from when a Gaussian was used).  
 
-The triply periodic mode (FCM) will use a Gaussian, the tolerance parameter can be specified instead of the support (which will be autocomputed from it).  
+The triply periodic mode (FCM) will also use the BM kernel, the tolerance parameter can be specified instead of the support (which will then be autocomputed from it).  
 
 Other kernels can be used, but the interface does not allow them for the moment, since the specific kernel parameters are still a work in progress.  
 
-The file dpstokes.py contains more info about this.
+The file dpstokes.py contains more info about this.  
+
+Hydrodynamic displacements coming from forces and torques can be computed in DP mode. However, if the torque-related arguments are ommited, the computations related to them are skipped entirely. See the dpstokes.py example for more details   
