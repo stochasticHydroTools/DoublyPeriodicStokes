@@ -14,30 +14,27 @@ At the moment, only a python interface to use the module is provided.
 ## USAGE:  
 
 Run make to compile, you might have to adapt it to your particular system before.  
+NOTE: Not useful yet, since reproduce scripts are not included.
   
 ### Python interface
 
-A python interface is provided that allows to compute the hydrodynamic displacements for a group of positions with forces and torques acting on them in different geometries, mainly:  
+A python interface is provided that allows to compute the hydrodynamic displacements for a group of positions with forces and/or torques acting on them in different geometries, mainly:  
 
 	* Doubly periodic (either with no walls, a bottom wall or a slit channel)  
 	* Triply periodic (using force coupling method)  
 
-Note that for now, FCM cannot deal with torques, just forces.
-
 This interface requires [pybind11](https://github.com/pybind/pybind11) to compile, which is included as a submodule and will be automatically downloaded if this repo is cloned recursively (see "About this repo" above).  
-In order to use it you must compile the python wrappers using make (doing ```make python``` or ```make all``` here will also compile the python library).  
+In order to use it you must compile the python wrappers using make inside python_interface.  
 A file called uammd.*.so will be created and then "import uammd" can be used inside python. Notice that you might have to customize python\_interface/Makefile for your particular system.  
 See python_interface/dpstokes.py for a usage example.  
-Once compiled you can use "help(uammd)" for additional usage information.  
+Once compiled and imported you can use "help(uammd)" in python for additional usage information.  
 
 ## About the spreading/interpolation kernels in the python interface
 
-The doubly periodic options will use the ES kernel (called BM in UAMMD), in this case the tolerance parameter will be ignored and the support must be specified.  
+The module will use the ES kernel (called BM in UAMMD).  
 
-The triply periodic mode (FCM) will also use the BM kernel, the tolerance parameter can be specified instead of the support (which will then be autocomputed from it).  
+Other kernels can be used, but the interface does not allow them for the moment.  
 
-Other kernels can be used, but the interface does not allow them for the moment, since the specific kernel parameters are still a work in progress.  
+Hydrodynamic displacements coming from forces and torques can be computed. If the torque-related arguments are ommited, the computations related to them are skipped entirely.
 
-The file dpstokes.py contains more info about this.  
-
-Hydrodynamic displacements coming from forces and torques can be computed in DP mode. However, if the torque-related arguments are ommited, the computations related to them are skipped entirely. See the dpstokes.py example for more details   
+The file python_interface/dpstokes.py contains more info.  

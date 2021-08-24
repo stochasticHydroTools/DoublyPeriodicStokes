@@ -5,16 +5,18 @@
    help(uammd)
 
 */
-#include "Integrator/BDHI/DoublyPeriodic/StokesSlab/utils.cuh"
 #include<pybind11/pybind11.h>
 #include<pybind11/numpy.h>
 #include <uammd.cuh>
+//Doubly Periodic FCM implementation (currently without noise)
 #include <Integrator/BDHI/DoublyPeriodic/DPStokesSlab.cuh>
+//Triply Periodic FCM implementation
 #include <Integrator/BDHI/BDHI_FCM.cuh>
 
-
+//Some convenient aliases
 namespace py = pybind11;
-using uammd::BDHI::FCM;
+using FCM_BM = uammd::BDHI::FCM_ns::Kernels::BarnettMagland;
+using FCM = uammd::BDHI::FCM_impl<FCM_BM, FCM_BM>;
 using DPStokesSlab = uammd::DPStokesSlab_ns::DPStokes;
 using uammd::DPStokesSlab_ns::WallMode;
 using uammd::System;
@@ -42,7 +44,7 @@ struct PyParameters{
   std::string mode;
 };
 
-
+//Helper functions and objects
 struct Real3ToReal4{
   __host__ __device__ uammd::real4 operator()(uammd::real3 i){
     auto pr4 = uammd::make_real4(i);
@@ -65,14 +67,16 @@ struct Real3ToReal4SubstractOriginZ{
     return pr4;
   }
 };
+
 FCM::Parameters createFCMParameters(PyParameters pypar){
   FCM::Parameters par;
   par.temperature = 0; //FCM can compute fluctuations, but they are turned off here
   par.viscosity = pypar.viscosity;
   par.tolerance = pypar.tolerance;
-  par.hydrodynamicRadius = pypar.hydrodynamicRadius;
   par.box = uammd::Box({pypar.Lx, pypar.Ly, pypar.zmax- pypar.zmin});
   par.cells = {pypar.nx, pypar.ny, pypar.nz};
+  par.kernel = std::make_shared<FCM_BM>(pypar.w, pypar.alpha, pypar.beta, pypar.Lx/pypar.nx);
+  par.kernelTorque = std::make_shared<FCM_BM>(pypar.w_d, pypar.alpha_d, pypar.beta_d, pypar.Lx/pypar.nx);
   return par;
 }
 
@@ -110,7 +114,24 @@ DPStokesSlab::Parameters createDPStokesParameters(PyParameters pypar){
   return par;
 }
 
-struct UAMMD {
+//Wrapper to UAMMD's TP and DP hydrodynamic modules, python interface is below
+struct DPStokesUAMMD {
+private:
+  auto computeHydrodynamicDisplacements(bool useTorque){
+    auto force = pd->getForce(uammd::access::gpu, uammd::access::read);
+    auto pos = pd->getPos(uammd::access::gpu, uammd::access::read);
+    auto torque = pd->getTorqueIfAllocated(uammd::access::gpu, uammd::access::read);
+    auto d_torques_ptr = useTorque?torque.raw():nullptr;
+    if(fcm){
+      return fcm->computeHydrodynamicDisplacements(pos.raw(), force.raw(),
+						   d_torques_ptr, numberParticles, st);
+    }
+    else if(dpstokes){
+      return dpstokes->Mdot(pos.raw(), force.raw(),
+			    d_torques_ptr, numberParticles, st);
+    }
+  }
+public:
   std::shared_ptr<DPStokesSlab> dpstokes;
   std::shared_ptr<FCM> fcm;
   std::shared_ptr<uammd::System> sys;
@@ -119,12 +140,13 @@ struct UAMMD {
   cudaStream_t st;
   thrust::device_vector<uammd::real3> tmp;
   real zOrigin;
-  UAMMD(PyParameters pypar, int numberParticles): numberParticles(numberParticles){
+
+  DPStokesUAMMD(PyParameters pypar, int numberParticles): numberParticles(numberParticles){
     this->sys = std::make_shared<uammd::System>();
     this->pd = std::make_shared<uammd::ParticleData>(numberParticles, sys);
     if(pypar.mode.compare("periodic")==0){
       auto par = createFCMParameters(pypar);
-      this->fcm = std::make_shared<FCM>(pd, sys, par);
+      this->fcm = std::make_shared<FCM>(par);
       zOrigin = 0;
     }
     else{
@@ -135,58 +157,104 @@ struct UAMMD {
     CudaSafeCall(cudaStreamCreate(&st));
   }
 
-  void Mdot(py::array_t<real> h_pos, py::array_t<real> h_forces, py::array_t<real> h_torques,
+  //Copy positions to UAMMD's ParticleData
+  void setPositions(py::array_t<real> h_pos){
+    tmp.resize(numberParticles);
+    auto pos = pd->getPos(uammd::access::gpu, uammd::access::write);
+    thrust::copy((uammd::real3*)h_pos.data(), (uammd::real3*)h_pos.data() + numberParticles,
+		 tmp.begin());
+    thrust::transform(thrust::cuda::par.on(st), tmp.begin(), tmp.end(),
+		      pos.begin(), Real3ToReal4SubstractOriginZ(zOrigin));
+  }
+
+  //Compute the hydrodynamic displacements due to a series of forces and/or torques acting on the particles
+  void Mdot(py::array_t<real> h_forces, py::array_t<real> h_torques,
 	    py::array_t<real> h_MF,
 	    py::array_t<real> h_MT){
+    // static int uses = 0;
+    // uses++;
+    //if(uses>=10) isNVTXEnabled = true;
     tmp.resize(numberParticles);
     bool useTorque = h_torques.size() != 0;
     {
-      auto pos = pd->getPos(uammd::access::gpu, uammd::access::write);
       auto force = pd->getForce(uammd::access::gpu, uammd::access::write);
-      thrust::copy((uammd::real3*)h_pos.data(), (uammd::real3*)h_pos.data() + numberParticles, tmp.begin());
-      thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), pos.begin(), Real3ToReal4SubstractOriginZ(zOrigin));
       thrust::copy((uammd::real3*)h_forces.data(), (uammd::real3*)h_forces.data() + numberParticles, tmp.begin());
-      thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), force.begin(), Real3ToReal4());
-      if(useTorque){
-	auto torque = pd->getTorque(uammd::access::gpu, uammd::access::write);
-        thrust::copy((uammd::real3*)h_torques.data(), (uammd::real3*)h_torques.data() + numberParticles, tmp.begin());
-	thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), torque.begin(), Real3ToReal4());
-      }
+      thrust::transform(thrust::cuda::par.on(st),
+			tmp.begin(), tmp.end(), force.begin(), Real3ToReal4());
     }
-    auto force = pd->getForce(uammd::access::gpu, uammd::access::read);
-    auto pos = pd->getPos(uammd::access::gpu, uammd::access::read);
-    if(fcm){
-      if(h_torques.size() != 0){
-    	System::log<System::EXCEPTION>("Cannot process torques in triply periodic mode");
-    	throw std::runtime_error("Invalid mode");
-      }
-      auto tmp_ptr = thrust::raw_pointer_cast(tmp.data());
-      fcm->Mdot(tmp_ptr, force.raw(), 0);
-      thrust::copy(tmp.begin(), tmp.end(), (uammd::real3*)h_MF.mutable_data());
+    if(useTorque){
+      auto torque = pd->getTorque(uammd::access::gpu, uammd::access::write);
+      thrust::copy((uammd::real3*)h_torques.data(), (uammd::real3*)h_torques.data() + numberParticles, tmp.begin());
+      thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), torque.begin(), Real3ToReal4());
     }
-    if(dpstokes){
-      auto torque = pd->getTorqueIfAllocated(uammd::access::gpu, uammd::access::read);
-      auto d_torques_ptr = useTorque?torque.raw():nullptr;
-      //mob is a tuple containing MF and MT. The mobilities for translational and rotational contributions
-      auto mob = dpstokes->Mdot(pos.raw(), force.raw(), d_torques_ptr, numberParticles, st);
-      if(mob.second.size()){
-	auto MT_real3 = thrust::make_transform_iterator(mob.second.begin(), Real4ToReal3());
-	thrust::copy(MT_real3, MT_real3 + numberParticles, (uammd::real3*)h_MT.mutable_data());
-      }
-      auto MF_real3 = thrust::make_transform_iterator(mob.first.begin(), Real4ToReal3());
-      thrust::copy(MF_real3, MF_real3 + numberParticles, (uammd::real3*)h_MF.mutable_data());
-    }
+    auto mob = this->computeHydrodynamicDisplacements(useTorque);
+    thrust::copy(mob.first.begin(), mob.first.end(), (uammd::real3*)h_MF.mutable_data());   
+    if(mob.second.size()){
+      thrust::copy(mob.second.begin(), mob.second.end(), (uammd::real3*)h_MT.mutable_data());
+    }    
   }
   
-  ~UAMMD(){
+  ~DPStokesUAMMD(){
     cudaDeviceSynchronize();
     cudaStreamDestroy(st);
+  }
+
+};
+
+
+//Python interface for the DPStokes module, see the accompanying example for more information
+/*Usage:
+  1- Call initialize with a set of parameters
+  2- Call setPositions (the format must be [x0 y0 z0 x1 y1 z1,...])
+  3- Call Mdot
+  4- Call clear to free any memory allocated by the module and ensure a gracious finish
+
+initialize can be called again in order to change the parameters.
+Calling initialize twice is cheaper than calling initialize, then clear, then initialize again.
+
+ */
+class DPStokesPython{
+  std::shared_ptr<DPStokesUAMMD> dpstokes;
+public:
+
+  //Initialize the modules with a certain set of parameters
+  //Reinitializes if the module was already initialized
+  void initialize(PyParameters pypar, int numberParticles){
+    dpstokes = std::make_shared<DPStokesUAMMD>(pypar, numberParticles);
+  }
+
+  //Clears all memory allocated by the module.
+  //This leaves the module in an unusable state until initialize is called again.
+  void clear(){
+    dpstokes->sys->finish();
+    dpstokes.reset();
+  }
+
+  //Set positions to compute mobility matrix
+  void setPositions(py::array_t<real> h_pos){
+    throwIfInvalid();
+    dpstokes->setPositions(h_pos);
+  }
+
+  //Compute the dot product of the mobility matrix with the forces and/or torques acting on the previously provided positions
+  void Mdot(py::array_t<real> h_forces, py::array_t<real> h_torques,
+	    py::array_t<real> h_MF,
+	    py::array_t<real> h_MT){
+    throwIfInvalid();
+    dpstokes->Mdot(h_forces, h_torques, h_MF, h_MT);
+  }
+
+private:
+  void throwIfInvalid(){
+    if(not dpstokes){
+      throw std::runtime_error("DPStokes is not initialized. Call Initialize first");
+    }
   }
 };
 
 using namespace pybind11::literals;
 
-
+//Transform between the enumerator for selecting a mode and a string
 std::string wallModeToString(WallMode mode){
   switch(mode){
   case WallMode::none:
@@ -198,12 +266,20 @@ std::string wallModeToString(WallMode mode){
   };
 }
 
+
+//Pybind bindings
 PYBIND11_MODULE(uammd, m) {
   m.doc() = "UAMMD DPStokes Python interface";
-  py::class_<UAMMD>(m, "DPStokes").
-    def(py::init<PyParameters, int>(),"Parameters"_a, "numberParticles"_a).
-    def("Mdot", &UAMMD::Mdot, "Computes the product of the Mobility tensor with the provided forces and torques. If torques are not present, they are assumed to be zero and angular displacements will not be computed",
-	"positions"_a,"forces"_a, "torques"_a = py::array_t<real>(),
+  py::class_<DPStokesPython>(m, "DPStokes").
+    def(py::init()).
+    def("initialize", &DPStokesPython::initialize,
+	"Initialize the DPStokes module, can be called on an already initialize module to change the parameters.",
+	"Parameters"_a, "numberParticles"_a).
+    def("clear", &DPStokesPython::clear, "Release all memory allocated by the module").
+    def("setPositions", &DPStokesPython::setPositions, "Set the positions to compute the mobility matrix",
+	"positions"_a).
+    def("Mdot", &DPStokesPython::Mdot, "Computes the product of the Mobility tensor with the provided forces and torques. If torques are not present, they are assumed to be zero and angular displacements will not be computed",
+	"forces"_a, "torques"_a = py::array_t<real>(),
 	"velocities"_a, "angularVelocities"_a = py::array_t<real>());
   
   py::class_<PyParameters>(m, "StokesParameters").
@@ -212,7 +288,6 @@ PYBIND11_MODULE(uammd, m) {
 		    uammd::real w, uammd::real w_d,
 		    uammd::real alpha, uammd::real alpha_d,
 		    uammd::real beta, uammd::real beta_d,
-		    uammd::real hydrodynamicRadius,
 		    int Nx, int Ny, int nz, std::string mode) {
       auto tmp = std::unique_ptr<PyParameters>(new PyParameters);
       tmp->viscosity = viscosity;
@@ -226,7 +301,6 @@ PYBIND11_MODULE(uammd, m) {
       tmp->mode = mode;
       tmp->w = w;
       tmp->w_d = w_d;
-      tmp->hydrodynamicRadius = hydrodynamicRadius;
       tmp->beta =beta;
       tmp->beta_d = beta_d;
       tmp->alpha = alpha;
@@ -236,7 +310,6 @@ PYBIND11_MODULE(uammd, m) {
 	"w"_a=1.0, "w_d"_a=1.0,
 	"alpha"_a = -1.0, "alpha_d"_a=-1.0,
 	"beta"_a = -1.0, "beta_d"_a=-1.0,
-	"hydrodynamicRadius"_a = -1.0,
 	"nx"_a = -1,"ny"_a = -1, "nz"_a = -1, "mode"_a="none").
     def_readwrite("viscosity", &PyParameters::viscosity, "Viscosity").
     def_readwrite("Lx", &PyParameters::Lx, "Domain size in the plane").
@@ -253,7 +326,6 @@ PYBIND11_MODULE(uammd, m) {
     def_readwrite("beta_d", &PyParameters::beta_d, "ES kernel dipole beta").
     def_readwrite("w", &PyParameters::w, "ES kernel monopole width").
     def_readwrite("w_d", &PyParameters::w_d, "ES kernel dipole width").
-    def_readwrite("hydrodynamicRadius", &PyParameters::hydrodynamicRadius, "Hydrodynamic radius").
     def("__str__", [](const PyParameters &p){
       return"viscosity = " + std::to_string(p.viscosity) +"\n"+
 	"box (L = " + std::to_string(p.Lx) +
