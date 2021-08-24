@@ -1,5 +1,5 @@
 
-UAMMD_ROOT=../source/uammd/
+UAMMD_ROOT=../source/gpu/uammd/
 PYBIND_ROOT=pybind11/
 PYTHON=python3
 CUDA_ROOT=/usr/local/cuda
@@ -7,18 +7,18 @@ LAPACKE_FLAGS=-llapacke -I/usr/include/lapacke
 #MKL_FLAGS=-DUSE_MKL -DMKL_ILP64 -m64 -I${MKLROOT}/include -L${MKLROOT}/lib/intel64  -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
 NVCC=$(CUDA_ROOT)/bin/nvcc
 #UAMMD can be quite verbose, 5 shows only some messages at initialization/exit, 0 will only print critical errors, 15will print A LOT.
-VERBOSITY=3
+VERBOSITY=1
 #Uncomment for double precision, UAMMD is compiled in single by default
-DOUBLEPRECISION=-DDOUBLE_PRECISION
+#DOUBLEPRECISION=-DDOUBLE_PRECISION
 #In case you prefer to import with other name
 MODULE_NAME=uammd
 INCLUDE_FLAGS= -I$(CUDA_ROOT)/include -I$(UAMMD_ROOT)/src -I$(UAMMD_ROOT)/src/third_party `$(PYTHON)-config --includes` -I $(PYBIND_ROOT)/include/
 
-#DEBUG= -DUAMMD_DEBUG # -g -G
+DEBUG= -O3 #-DUSE_NVTX #-DUAMMD_DEBUG #  -g  -G -O0
 
 LIBRARY_NAME=$(MODULE_NAME)`$(PYTHON)-config --extension-suffix`
 FILE=uammd_wrapper.cu
 all:
-	$(NVCC) -w -shared -std=c++14 -DMAXLOGLEVEL=$(VERBOSITY) $(DOUBLEPRECISION) $(INCLUDE_FLAGS) $(DEBUG) -Xcompiler "-fPIC -w"  $(FILE) -o $(LIBRARY_NAME) $(LAPACKE_FLAGS) $(MKL_FLAGS) -lcufft
+	$(NVCC) -w -shared -std=c++14 -DMAXLOGLEVEL=$(VERBOSITY) $(DOUBLEPRECISION) $(INCLUDE_FLAGS) $(DEBUG) -Xcompiler "-fPIC -w"  $(FILE) -o $(LIBRARY_NAME) $(LAPACKE_FLAGS) $(MKL_FLAGS) -lcufft -lnvToolsExt
 clean:
 	rm $(LIBRARY_NAME)

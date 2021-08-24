@@ -1,5 +1,5 @@
 [submodule "uammd"]
-	path = source/uammd
+	path = source/gpu/uammd
 	url = https://github.com/raulppelaez/uammd
 [submodule "pybind11"]
 	path = python_interface/pybind11
