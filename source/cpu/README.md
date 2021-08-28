@@ -129,7 +129,7 @@ by adding `-Dfftw_wisdom_patient=on` to the `cmake` command
 For example, one way to generate wisdom beforehand whithout actually running 
 a solver is to execute a python script with something like the following:
 
-```
+```python
 from Transform import *
 
 # size of grid
@@ -182,7 +182,7 @@ step in the FCM solution process:
 
 Below is an example script for using the `FCM` module, also provided in `examples/fcm_example.py`.
 
-```
+```python
 import sys
 from FCM import *
 
