@@ -18,7 +18,7 @@ The CPU version of the solver is included in `source/cpu`.
 Running make will compile and set up both the CPU and GPU python interfaces for the solver.
 You may have to adapt `compile_flags.txt`, `python_interface/compile_flags.txt`, and the `python_interface/Makefile` to build
 the GPU solver. The CPU solver should compile as is, but there is more information for customizing the build
-in the source/cpu/README.md. 
+in the `source/cpu/README.md`. 
 
 If you want to use the Intel compiler for the CPU code, prefix the call to make as
 ```shell
