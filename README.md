@@ -55,4 +55,4 @@ Hydrodynamic displacements coming from forces and torques can be computed.
 For the GPU interface, if the torque-related arguments are ommited, the computations related to them are skipped entirely.
 For the CPU interface, the user must specify whether torques are involved with a boolean swith, like `has_torque=True`.
 
-The files python_interface/dpstokesGPU.py and python_interface/dpstokesCPU.py contain more info.  
+The files `python_interface/dpstokesGPU.py` and `python_interface/dpstokesCPU.py` contain more info.  
