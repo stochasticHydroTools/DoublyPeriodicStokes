@@ -15,11 +15,11 @@ You will need to `apt install` at least the following dependencies:
 
 ### Build Instructions - GNU Compiler ###
 Now, execute the following from the top of the source tree: 
-```
-$ mkdir build && cd build
-$ cmake3 -Dfftw_wisdom=on -Duse_stack=on ..
-$ make -j6 (or however many threads you'd like to use)
-$ make install
+```shell
+mkdir build && cd build
+cmake3 -Dfftw_wisdom=on -Duse_stack=on ..
+make -j6 (or however many threads you'd like to use)
+make install
 ```
 Executing the commands above will build all libraries and executables. The libraries are
 installed in `$INSTALL_PATH/lib`. Executables are installed in `$INSTALL_PATH/bin`. 
@@ -33,33 +33,33 @@ If using the Intel compilers, there is an additional step of downloading and
 installing FFTW locally.
 
 First, load the Intel compilers with something like
-```
-$ module load intel-2019
+```shell
+module load intel-2019
 ```
 or
-```
-$ source /opt/intel/bin/compilervars.sh intel64 
-$ source /opt/intel/mkl/bin/mklvars.sh intel64
+```shell
+source /opt/intel/bin/compilervars.sh intel64 
+source /opt/intel/mkl/bin/mklvars.sh intel64
 ```
 Then, download and install FFTW with
 
-```
-$ wget ftp://ftp.fftw.org/pub/fftw/fftw-3.3.9.tar.gz
-$ tar xvzf fftw-3.3.9.tar.gz
-$ cd fftw-3.3.9
-$ sed -i 's/fopenmp/qopenmp/g' configure
-$ CC=icc F77=ifort ./configure --prefix=$SRC_DIR/fftw_install --enable-shared --enable-openmp --enable-sse2 --enable-avx --enable-avx2
-$ make
-$ make install
+```shell
+wget ftp://ftp.fftw.org/pub/fftw/fftw-3.3.9.tar.gz
+tar xvzf fftw-3.3.9.tar.gz
+cd fftw-3.3.9
+sed -i 's/fopenmp/qopenmp/g' configure
+CC=icc F77=ifort ./configure --prefix=$SRC_DIR/fftw_install --enable-shared --enable-openmp --enable-sse2 --enable-avx --enable-avx2
+make
+make install
 ```
 where `$SRC_DIR` is the top level of the project source tree (eg. `/path/to/DoublyPeriodicStokes/source/cpu`)
 
 Lastly, build the libraries with 
-```
-$ mkdir build && cd build
-$ cmake3 -Dfftw_wisdom=on -Duse_stack=on -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc ..
-$ make -j6 (or however many threads you'd like to use)
-$ make install
+```shell
+mkdir build && cd build
+cmake3 -Dfftw_wisdom=on -Duse_stack=on -DCMAKE_CXX_COMPILER=icpc -DCMAKE_C_COMPILER=icc ..
+make -j6 (or however many threads you'd like to use)
+make install
 ```
 
 ### Usage ###
@@ -67,26 +67,25 @@ $ make install
 #### Environment Settings ####
 Before using any function (python or c++), set the following environment
 variables for OpenMP (eg. in bash):
-```
-$ ulimit -s unlimited
-$ export OMP_STACKSIZE=256m
-$ export OMP_NESTED=false (or OMP_MAX_ACTIVE_LEVELS=1)
-$ export OMP_NUM_THREADS=1
-$ export OMP_MAX_ACTIVE_LEVELS=1
+```shell
+ulimit -s unlimited
+export OMP_STACKSIZE=256m
+export OMP_NESTED=false (or OMP_MAX_ACTIVE_LEVELS=1)
+export OMP_NUM_THREADS=1
+export OMP_MAX_ACTIVE_LEVELS=1
 ```
 
 The `PYTHONPATH` and `LD_LIBRARY_PATH` have to be expanded with the location
 of the Python files (in `python` folder), and the shared libraries (in `lib` folder):
-```
+```shell
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/path/to/DoublyPeriodicStokes/source/cpu/lib
 export PYTHONPATH=${PYTHONPATH}:/path/to/DoublyPeriodicStokes/source/cpu/python
-
 ```
 Then, set the `num_threads` variable in the file `python/config.py` to
 the number of threads you want to use, or accomplish this with `sed`.
-```
-$ num_threads=10
-$ sed -i "/num_threads/c num_threads=${num_threads}" /path/to/DoublyPeriodicStokes/source/cpu/python/config.py
+```shell
+num_threads=10
+sed -i "/num_threads/c num_threads=${num_threads}" /path/to/DoublyPeriodicStokes/source/cpu/python/config.py
 ```
 All OpenMP parallel loops throughout the library will use this number of 
 threads, and nested parallelism is disabled. 
@@ -94,18 +93,17 @@ threads, and nested parallelism is disabled.
 A convenience script `config.sh` is available in the `examples` folder after installation. 
 Executing the following will accomplish the above snippets, and the file can be 
 edited as needed. It must be sourced every time a new shell is used for a run.
-```
+```shell
 $ source config.sh
 ```
 For thread pinning, one must use different settings depending on how the library was built. These
 can be added to config.sh. For example, for a 10 core single socket machine with GNU compilation
-```
-$ export OMP_PLACES="{0}:10:1"
-$ export OMP_PROC_BIND=true
-
+```shell
+export OMP_PLACES="{0}:10:1"
+export OMP_PROC_BIND=true
 ```
 or with Intel compilation
-```
+```shell
 source /opt/intel/mkl/bin/mklvars.sh intel64  
 export MKL_THREADING_LAYER=sequential
 export KMP_AFFINITY="verbose,proclist=[0,1,2,3,4,5,6,7,8,9],explicit"
@@ -219,18 +217,17 @@ problem.SetPositions(xP)
 V = problem.Mdot(F)
 
 problem.Clean()
-
 ```
 An example workflow for using this script in Bash from a newly created `run` 
 directory is provided below:
-```
-$ cd && mkdir run && cd run
-$ cp /path/to/DoublyPeriodicStokes/source/cpu/examples/config.sh . 
-$ cp /path/to/DoublyPeriodicStokes/source/cpu/examples/fcm_example.py .
-$ cp /path/to/DoublyPeriodicStokes/source/cpu/examples/Test_Data_For_Rollers.tgz .
-$ tar xvzf Test_Data_For_Rollers.tgz
-$ source config.sh
-$ python fcm_example.py
+```shell
+cd && mkdir run && cd run
+cp /path/to/DoublyPeriodicStokes/source/cpu/examples/config.sh . 
+cp /path/to/DoublyPeriodicStokes/source/cpu/examples/fcm_example.py .
+cp /path/to/DoublyPeriodicStokes/source/cpu/examples/Test_Data_For_Rollers.tgz .
+tar xvzf Test_Data_For_Rollers.tgz
+source config.sh
+python3 fcm_example.py
 ```
 
 ### Organization ###
