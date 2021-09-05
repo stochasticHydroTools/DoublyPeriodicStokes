@@ -28,7 +28,7 @@ class FCMJoint:
         self.__device = device
         self.__has_torque = has_torque
         radP = hydrodynamicRadius*np.ones(numberParticles)
-        kernTypes = kernType*np.ones(numberParticles, dtype=int)
+        kernTypes = kernType*np.zeros(numberParticles, dtype=int)
         if device == 'cpu':
             self.cpusolver = FCM(radP, kernTypes, domType, has_torque)
             self.cpusolver.SetUnitCell([xmin,xmax], [ymin,ymax], [zmin,zmax])
