@@ -7,6 +7,8 @@ if "FCM_CPUCONFIG_LAUNCHED" not in os.environ:
     sys.exit()
 from FCM import *  # CPU solver
 
+# Donev: Explain to me how changing the domain size only (for open domains) is supposed to be done here -- calling Initialize again?
+# I don't get where the CPU method clean is called etc. but I am sure I am just not getting exactly what some lines do...
 
 class FCMJoint:
 
@@ -23,7 +25,7 @@ class FCMJoint:
         if not device == 'cpu' and self.__device == 'cpu':
             self.precision = np.float64
             self.Clean()
-        else:
+        else: # Donev: What if you compiled UAMMD in double precision? Is there any point in that if the interface goes through single precision?
             self.precision = np.float32
         self.__device = device
         self.__has_torque = has_torque

@@ -1,4 +1,5 @@
 #Raul P. Pelaez 2021. Test for the DP algorithm, compares with Sachin's data.
+# Donev: Fix comments to say "compares GPU and CPU versions" and not "Sachin's data" if you intend this to be in the public release
 # For instructions on usage see dpstokes.py
 # This script will not work without Sachin's comparison data files (called fcm_multiblob_compare.tgz, not included in the repo)
 
