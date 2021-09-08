@@ -8,8 +8,10 @@ if "FCM_CPUCONFIG_LAUNCHED" not in os.environ:
 from FCM import *  # CPU solver
 
 # Donev: Explain to me how changing the domain size only (for open domains) is supposed to be done here -- calling Initialize again?
-# I don't get where the CPU method clean is called etc. but I am sure I am just not getting exactly what some lines do...
+#A, Raul: Correct, I would need to zoom discuss with you both to separate it. I am not sure about what exactly Sachin's setUnitCell does (a.i. does it adapt the input size?)
 
+# I don't get where the CPU method clean is called etc. but I am sure I am just not getting exactly what some lines do...
+# A, Raul: It is called in Clean(self):. If you are asking "why" is it called in the constructor, it is because AFAIK, Sachin's impl requires Clean before reinitialization.
 class FCMJoint:
 
     def __init__(self):
@@ -26,6 +28,7 @@ class FCMJoint:
             self.precision = np.float64
             self.Clean()
         else: # Donev: What if you compiled UAMMD in double precision? Is there any point in that if the interface goes through single precision?
+              # A, Raul: In that case, this code would be erroneous. I can think of a way for precision detection to be automatic.
             self.precision = np.float32
         self.__device = device
         self.__has_torque = has_torque
@@ -47,17 +50,17 @@ class FCMJoint:
                 mode = 'bottom'
             elif domType == 'DPSC':
                 mode = 'slit'
-            par = uammd.StokesParameters(viscosity=viscosity,
+            self.par = uammd.StokesParameters(viscosity=viscosity,
                                          Lx=Lx, Ly=Ly,
                                          zmin=zmin, zmax=zmax,
                                          w=w[0], w_d=w_d[0],
                                          beta=beta[0]*w[0], beta_d=beta_d[0]*w_d[0],
                                          nx=nx, ny=ny, nz=nz, mode=mode)
-            print(par)
+            print(self.par)
             if not self.__gpuCreated:
                 self.gpusolver = uammd.DPStokes()
                 self.__gpuCreated = True
-            self.gpusolver.initialize(par, numberParticles)
+            self.gpusolver.initialize(self.par, numberParticles)
 
     def Clean(self):
         if self.__device == 'cpu':

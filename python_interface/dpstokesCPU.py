@@ -1,7 +1,7 @@
 import sys
 import random
 from FCM import *
-np.random.seed(0)
+np.random.seed(1234)
 
 # example usage of the FCM CPU module
 
