@@ -64,7 +64,7 @@ class FCMJoint:
     def Clean(self):
         if self.__device == 'cpu' and self.__cpuCreated:
             self.cpusolver.Clean()
-        elif self.__device == 'gpu' and self.__cpuCreated:
+        elif self.__device == 'gpu' and self.__gpuCreated:
             self.gpusolver.clear()
 
     def SetPositions(self, positions):
