@@ -38,9 +38,9 @@ class FCMJoint:
             self.cpusolver.Initialize(viscosity, optInd=optInd)
             self.__cpuCreated = True
         elif self.__device == 'gpu':
-            Lx, Ly, _, _, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
+            Lx, Ly, hx, hy, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
                 = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, radP, kernTypes, optInd, has_torque)
-            zmax, _, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque)
+            zmax, hz, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque)
             if domType == 'TP':
                 mode = 'periodic'
             elif domType == 'DP':
