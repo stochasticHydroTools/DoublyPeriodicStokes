@@ -4,9 +4,8 @@
 # A, Raul: an spureous file that got accidentally commited, removed.
 UAMMD_ROOT=../source/gpu/uammd/
 PYBIND_ROOT=pybind11/
-# Donev: Is this PYTHON settings stuff shared between the CPU and GPU? Surely one has to use the same python for both to use the common interface?
-# A, Raul: I do not think Sachin uses this variable. I could just use the system "python" and let the user set up the env.
-PYTHON=python3
+#Location/name of the python3 executable
+PYTHON3=python3
 # Donev: Why do you need CUDA_ROOT? It doesn't work with "module load". I suggest instead
 NVCC=nvcc
 # It is my understanding that when you use nvcc, -I$(CUDA_ROOT)/include is automatic, i.e., it knows where to link from?
@@ -40,7 +39,7 @@ VERBOSITY=3 #Raul: It would be useful that Sachin shares this variable
 #DOUBLEPRECISION=-DDOUBLE_PRECISION 
 #In case you prefer to import with other name
 GPU_MODULE_NAME=uammd
-GPU_INCLUDE_FLAGS= -I$(CUDA_ROOT)/include -I$(UAMMD_ROOT)/src -I$(UAMMD_ROOT)/src/third_party `$(PYTHON)-config --includes` -I $(PYBIND_ROOT)/include/
+GPU_INCLUDE_FLAGS= -I$(CUDA_ROOT)/include -I$(UAMMD_ROOT)/src -I$(UAMMD_ROOT)/src/third_party `$(PYTHON3)-config --includes` -I $(PYBIND_ROOT)/include/
 
 #DEBUG= -g -O0
 ifdef $(DEBUG)

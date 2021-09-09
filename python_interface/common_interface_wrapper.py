@@ -14,34 +14,31 @@ from FCM import *  # CPU solver
 # A, Raul: It is called in Clean(self):. If you are asking "why" is it called in the constructor, it is because AFAIK, Sachin's impl requires Clean before reinitialization.
 class FCMJoint:
 
-    def __init__(self):
-        self.__device = ''
+    def __init__(self, device = 'cpu'):
+        self.__device = device
         self.__gpuCreated = False
+        if device == 'cpu':
+            self.precision = np.float64
+        else:
+            self.precision = np.float32
 
     def Initialize(self, numberParticles, hydrodynamicRadius, viscosity,
                    kernType, domType,
                    has_torque,
                    xmax, ymax, zmin, zmax,
-                   device='cpu',
                    xmin=0, ymin=0, optInd=0):
-        if not device == 'cpu' and self.__device == 'cpu':
-            self.precision = np.float64
-            self.Clean()
-        else: # Donev: What if you compiled UAMMD in double precision? Is there any point in that if the interface goes through single precision?
-              # A, Raul: In that case, this code would be erroneous. I can think of a way for precision detection to be automatic.
-            self.precision = np.float32
-        self.__device = device
+        self.Clean()
         self.__has_torque = has_torque
         radP = hydrodynamicRadius*np.ones(numberParticles)
         kernTypes = kernType*np.ones(numberParticles, dtype=int)
         if device == 'cpu':
             self.cpusolver = FCM(radP, kernTypes, domType, has_torque)
             self.cpusolver.SetUnitCell([xmin,xmax], [ymin,ymax], [zmin,zmax])
-            self.cpusolver.Initialize(viscosity, optInd=0)
+            self.cpusolver.Initialize(viscosity, optInd=optInd)
         elif device == 'gpu':
-            Lx, Ly, hx, hy, nx, ny, w,\
-            w_d, cbeta, cbeta_d, beta, beta_d  = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, radP, kernTypes, optInd, has_torque)
-            zmax, hz, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque)
+            Lx, Ly, _, _, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
+                = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, radP, kernTypes, optInd, has_torque)
+            zmax, _, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque)
             if domType == 'TP':
                 mode = 'periodic'
             elif domType == 'DP':

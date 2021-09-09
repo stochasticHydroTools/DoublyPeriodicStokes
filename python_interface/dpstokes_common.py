@@ -19,9 +19,9 @@ xmin = 0.0; xmax = 128.7923
 ymin = 0.0; ymax = 128.7923
 zmin = 0.0; zmax = 9.1740639106166668
 # set the radii and kernel
-solver = FCMJoint()
+solver = FCMJoint(device)
 solver.Initialize(numberParticles=nP, hydrodynamicRadius=1.0155, kernType=0,
-                  domType=domType, has_torque=has_torque, device=device,
+                  domType=domType, has_torque=has_torque,
                   xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
                   viscosity=viscosity, optInd=0)
 
