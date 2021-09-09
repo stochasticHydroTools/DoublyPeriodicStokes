@@ -32,12 +32,12 @@ class FCMJoint:
         self.__has_torque = has_torque
         radP = hydrodynamicRadius*np.ones(numberParticles)
         kernTypes = kernType*np.ones(numberParticles, dtype=int)
-        if device == 'cpu':
+        if self.__device == 'cpu':
             self.cpusolver = FCM(radP, kernTypes, domType, has_torque)
             self.cpusolver.SetUnitCell([xmin,xmax], [ymin,ymax], [zmin,zmax])
             self.cpusolver.Initialize(viscosity, optInd=optInd)
             self.__cpuCreated = True
-        elif device == 'gpu':
+        elif self.__device == 'gpu':
             Lx, Ly, _, _, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
                 = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, radP, kernTypes, optInd, has_torque)
             zmax, _, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque)
