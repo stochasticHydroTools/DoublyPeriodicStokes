@@ -49,7 +49,7 @@ GPU_OPTIMIZATION= -O3
 endif
 #Raul: Sachin, can you make your CMake aware of the DEBUG variable?
 
-GPU_LIBRARY_NAME=$(GPU_MODULE_NAME)`$(PYTHON)-config --extension-suffix`
+GPU_LIBRARY_NAME=$(GPU_MODULE_NAME)`$(PYTHON3)-config --extension-suffix`
 
 all: dpstokesGPU dpstokesCPU
 
