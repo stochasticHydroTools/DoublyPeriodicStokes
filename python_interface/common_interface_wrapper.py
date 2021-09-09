@@ -17,6 +17,7 @@ class FCMJoint:
     def __init__(self, device = 'cpu'):
         self.__device = device
         self.__gpuCreated = False
+        self.__cpuCreated = False
         if device == 'cpu':
             self.precision = np.float64
         else:
@@ -26,7 +27,7 @@ class FCMJoint:
                    kernType, domType,
                    has_torque,
                    xmax, ymax, zmin, zmax,
-                   xmin=0, ymin=0, optInd=0):
+                   xmin=0, ymin=0, optInd=0):        
         self.Clean()
         self.__has_torque = has_torque
         radP = hydrodynamicRadius*np.ones(numberParticles)
@@ -35,6 +36,7 @@ class FCMJoint:
             self.cpusolver = FCM(radP, kernTypes, domType, has_torque)
             self.cpusolver.SetUnitCell([xmin,xmax], [ymin,ymax], [zmin,zmax])
             self.cpusolver.Initialize(viscosity, optInd=optInd)
+            self.__cpuCreated = True
         elif device == 'gpu':
             Lx, Ly, _, _, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
                 = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, radP, kernTypes, optInd, has_torque)
@@ -60,9 +62,9 @@ class FCMJoint:
             self.gpusolver.initialize(self.par, numberParticles)
 
     def Clean(self):
-        if self.__device == 'cpu':
+        if self.__device == 'cpu' and self.__cpuCreated:
             self.cpusolver.Clean()
-        elif self.__device == 'gpu':
+        elif self.__device == 'gpu' and self.__cpuCreated:
             self.gpusolver.clear()
 
     def SetPositions(self, positions):
