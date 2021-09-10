@@ -1,33 +1,33 @@
-CURDIR					= $(shell pwd)
-CXX 						= icpc
+CURDIR          = $(shell pwd)
+CXX             = icpc
 
 ifneq ($(debug), True)
-	CXXFLAGS 			= -I$(CURDIR)/include -w -diag-disable remark -Iinclude -O3 -ipo -DUSE_MKL -shared -L$(INSTALL_DIR)
+  CXXFLAGS      = -I$(CURDIR)/include -w -diag-disable remark -Iinclude -O3 -ipo -DUSE_MKL -shared -L$(INSTALL_DIR)
 else
-	CXXFLAGS			= -I$(CURDIR)/include -w -shared $(CPU_DEBUG) -L$(INSTALL_DIR)
+  CXXFLAGS      = -I$(CURDIR)/include -w -shared $(CPU_DEBUG) -L$(INSTALL_DIR)
 endif
 
-chebSRC 				= src/Quadrature.cpp
-chebINC 				= include/Quadrature.h
-gridSRC 				= src/Grid.cpp wrapper/GridWrapper.cpp
-gridINC 				= include/Grid.h include/common.h include/exceptions.h include/Quadrature.h 
-particlesSRC 		= src/ParticleList.cpp wrapper/ParticleListWrapper.cpp
-particlesINC 		= include/ParticleList.h include/ESKernels.h include/Grid.h include/Quadrature.h include/exceptions.h
+chebSRC         = src/Quadrature.cpp
+chebINC         = include/Quadrature.h
+gridSRC         = src/Grid.cpp wrapper/GridWrapper.cpp
+gridINC         = include/Grid.h include/common.h include/exceptions.h include/Quadrature.h 
+particlesSRC    = src/ParticleList.cpp wrapper/ParticleListWrapper.cpp
+particlesINC    = include/ParticleList.h include/ESKernels.h include/Grid.h include/Quadrature.h include/exceptions.h
 spreadInterpSRC = src/SpreadInterp.cpp wrapper/SpreadInterpWrapper.cpp
 spreadInterpINC = include/SpreadInterp.h include/Grid.h include/ParticleList.h include/exceptions.h
-transformSRC 		= src/Transform.cpp wrapper/TransformWrapper.cpp
-transformINC 		= include/Transform.h include/exceptions.h include/common.h
-linSolveSRC 		= src/LinearSolvers.cpp
-linSolveINC 		= include/LinearSolvers.h
-dpToolsSRC 			= src/DPTools.cpp
-dpToolsINC 			= include/DPTools.h include/exceptions.h
-bcSRC 					= wrapper/BCWrapper.cpp
-bcINC 					= include/BoundaryConditions.h include/common.h include/Grid.h include/ParticleList.h
-LIBS_ 					= libcheb.so libgrid.so libparticles.so libspreadInterp.so libspreadInterpDerivX.so\
-				 					libspreadInterpDerivY.so libspreadInterpDerivZ.so libtransform.so liblinSolve.so\
-  	     					libdpTools.so libBC.so
+transformSRC    = src/Transform.cpp wrapper/TransformWrapper.cpp
+transformINC    = include/Transform.h include/exceptions.h include/common.h
+linSolveSRC     = src/LinearSolvers.cpp
+linSolveINC     = include/LinearSolvers.h
+dpToolsSRC      = src/DPTools.cpp
+dpToolsINC      = include/DPTools.h include/exceptions.h
+bcSRC           = wrapper/BCWrapper.cpp
+bcINC           = include/BoundaryConditions.h include/common.h include/Grid.h include/ParticleList.h
+LIBS_           = libcheb.so libgrid.so libparticles.so libspreadInterp.so libspreadInterpDerivX.so\
+                  libspreadInterpDerivY.so libspreadInterpDerivZ.so libtransform.so liblinSolve.so\
+                  libdpTools.so libBC.so
 
-LIBS						= $(patsubst %,$(INSTALL_DIR)/%,$(LIBS_))
+LIBS            = $(patsubst %,$(INSTALL_DIR)/%,$(LIBS_))
 
 
 
@@ -40,15 +40,15 @@ $(INSTALL_DIR)/libcheb.so: $(chebSRC) $(chebINC)
 $(INSTALL_DIR)/libgrid.so: $(gridSRC) $(gridINC) 
 	@mkdir -p $(INSTALL_DIR)
 	@if [ ! -d $(FFTW_INSTALL)/lib ]; then\
-		echo "Downloading and compiling fftw-3.3.9";\
-		echo "This will take a few minutes";\
-		wget ftp://ftp.fftw.org/pub/fftw/fftw-3.3.9.tar.gz;\
-		tar xzf fftw-3.3.9.tar.gz;\
-		cd fftw-3.3.9;\
-		sed -i 's/fopenmp/qopenmp/g' configure;\
-		CC=icc F77=ifort ./configure --prefix=$(FFTW_INSTALL) --enable-shared --enable-openmp --enable-sse2 --enable-avx --enable-avx2;\
-		make -j6; make install; cd ..;\
-		rm -rf fftw-3.3.9.tar.gz fftw-3.3.9;\
+	  echo "Downloading and compiling fftw-3.3.9";\
+	  echo "This will take a few minutes";\
+	  wget ftp://ftp.fftw.org/pub/fftw/fftw-3.3.9.tar.gz;\
+	  tar xzf fftw-3.3.9.tar.gz;\
+	  cd fftw-3.3.9;\
+	  sed -i 's/fopenmp/qopenmp/g' configure;\
+	  CC=icc F77=ifort ./configure --prefix=$(FFTW_INSTALL) --enable-shared --enable-openmp --enable-sse2 --enable-avx --enable-avx2;\
+	  make -j6; make install; cd ..;\
+	  rm -rf fftw-3.3.9.tar.gz fftw-3.3.9;\
 	fi;\
 	$(CXX) -o $@ $(gridSRC) $(CXXFLAGS) $(FFTW_FLAGS) -lfftw3 -lm -xHost -qopenmp -fpic
 
@@ -63,7 +63,7 @@ $(INSTALL_DIR)/libspreadInterp.so: $(spreadInterpSRC) $(spreadInterpINC) $(INSTA
 $(INSTALL_DIR)/libspreadInterpDerivX.so: $(spreadInterpSRC) $(spreadInterpINC) $(INSTALL_DIR)/libparticles.so
 	@mkdir -p $(INSTALL_DIR)
 	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_X -xHost -qopenmp -fpic -lparticles
-	
+  
 $(INSTALL_DIR)/libspreadInterpDerivY.so: $(spreadInterpSRC) $(spreadInterpINC) $(INSTALL_DIR)/libparticles.so
 	@mkdir -p $(INSTALL_DIR)
 	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_Y -xHost -qopenmp -fpic -lparticles

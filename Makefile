@@ -72,16 +72,16 @@ all: python
 python: python_cpu python_gpu
 
 python_cpu:
-  make dpstokesCPU -C python_interface
+	make dpstokesCPU -C python_interface
 
 python_gpu:
-  make dpstokesGPU -C python_interface
+	make dpstokesGPU -C python_interface
 
 clean:
-  make -C python_interface clean
+	make -C python_interface clean
 
 clean_cpu:
-  make clean_cpu -C python_interface
+	make clean_cpu -C python_interface
 
 clean_gpu:
-  make clean_gpu -C python_interface
+	make clean_gpu -C python_interface
