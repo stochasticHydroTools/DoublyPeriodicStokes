@@ -19,7 +19,7 @@ export PYBIND_ROOT      = $(shell pwd)/python_interface/pybind11/
 export PYTHON3          = python3
 # cuda compiler and bin 
 export NVCC             = nvcc
-export CUDA_ROOT        = "$(shell dirname `which nvcc`)"/../
+export CUDA_ROOT        = "$(shell dirname `which nvcc`)"/..
 
 # specify where lapacke.h and lapacke.so 
 #   openblas
