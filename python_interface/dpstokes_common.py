@@ -6,7 +6,7 @@ from common_interface_wrapper import FCMJoint
 np.random.seed(1234)
 
 # Device to run the code, can be either 'cpu' or 'gpu'
-device = 'cpu'
+device = 'gpu'
 
 # first set the domain type, extents, viscosity and number of paticles 
 # domType can be 'DPBW', 'DPSC', 'DP', 'TP'

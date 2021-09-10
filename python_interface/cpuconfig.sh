@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SRC_DIR=/home/srn324/DoublyPeriodicStokes
-INSTALL_DIR=/home/srn324/DoublyePeriodicStokes/python_interface/lib
+INSTALL_DIR=/home/srn324/DoublyPeriodicStokes/python_interface/lib
 
 # NOTE: users should only modify num_threads, OMP_STACKSIZE and thread pinning settings
 #       do not change OMP_NUM_THREADS or the nested parallelism settings

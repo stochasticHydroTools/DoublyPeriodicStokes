@@ -12,9 +12,9 @@
 # specify location of shared libraries
 export INSTALL_DIR      = $(shell pwd)/python_interface/lib
 # root of uammd
-export UAMMD_ROOT       = source/gpu/uammd/
+export UAMMD_ROOT       = $(shell pwd)/source/gpu/uammd/
 # This variable can be commented if the system provides pybind11
-export PYBIND_ROOT      = python_interface/pybind11/
+export PYBIND_ROOT      = $(shell pwd)/python_interface/pybind11/
 # Location/name of the python3 executable
 export PYTHON3          = python3
 # cuda compiler and bin 

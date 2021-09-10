@@ -1,13 +1,13 @@
-GPU_INCLUDE_FLAGS		= -I$(CUDA_ROOT)/include -I$(UAMMD_ROOT)/src -I$(UAMMD_ROOT)/src/third_party
-DEBUG								= -g -O0
+GPU_INCLUDE_FLAGS   = -I$(CUDA_ROOT)/include -I$(UAMMD_ROOT)/src -I$(UAMMD_ROOT)/src/third_party
+DEBUG               = -g -O0
 ifeq ($(debug), True)
-	GPU_DEBUG = $(DEBUG) -G -DUSE_NVTX -DUAMMD_DEBUG
-	export CPU_DEBUG 	= $(DEBUG) -DDEBUG 
+  GPU_DEBUG = $(DEBUG) -G -DUSE_NVTX -DUAMMD_DEBUG
+  export CPU_DEBUG  = $(DEBUG) -DDEBUG 
 else
-GPU_OPTIMIZATION		= -O3
+GPU_OPTIMIZATION    = -O3
 endif
 
-GPU_LIBRARY_NAME		=	$(INSTALL_DIR)/$(GPU_MODULE_NAME)$(shell $(PYTHON3)-config --extension-suffix)
+GPU_LIBRARY_NAME    = $(INSTALL_DIR)/$(GPU_MODULE_NAME)$(shell $(PYTHON3)-config --extension-suffix)
 
 
 all: dpstokesCPU dpstokesGPU
@@ -39,4 +39,4 @@ clean_cpu:
 
 clean_gpu:
 	rm -rf python_gpu/uammd_gpu.o python_gpu/uammd_python.o $(INSTALL_DIR)/uammd*.so
-	
+  
