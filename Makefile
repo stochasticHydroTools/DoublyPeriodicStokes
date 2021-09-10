@@ -2,7 +2,7 @@
 
 # [CPU=Intel] [DEBUG=True] make           
 
-# i.e) make, CPU=Intel make, DEBUG=True, CPU=Intel DEBUG=True make
+# i.e) make, CPU=Intel make, DEBUG=True make, CPU=Intel DEBUG=True make
 # CPU=Intel will toggle the Intel compiler (icpc) for cpu code
 # DEBUG=True will compile in debug mode for both gpu and cpu code
 
