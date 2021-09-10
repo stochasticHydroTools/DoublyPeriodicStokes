@@ -67,6 +67,8 @@ export cpu      = $(CPU)
 export debug    = $(DEBUG)
 export clonedir = $(PWD)
 
+#This variable informs other Makefiles that the right environment variables have been set
+export calling_from_parent = True
 all: python
 
 python: python_cpu python_gpu
