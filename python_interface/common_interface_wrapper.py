@@ -5,13 +5,8 @@ import sys
 if "FCM_CPUCONFIG_LAUNCHED" not in os.environ:
     print("ERROR: Please source cpuconfig.sh before using this module")
     sys.exit()
-from FCM import *  # CPU solver
+from FCM import *
 
-# Donev: Explain to me how changing the domain size only (for open domains) is supposed to be done here -- calling Initialize again?
-#A, Raul: Correct, I would need to zoom discuss with you both to separate it. I am not sure about what exactly Sachin's setUnitCell does (a.i. does it adapt the input size?)
-
-# I don't get where the CPU method clean is called etc. but I am sure I am just not getting exactly what some lines do...
-# A, Raul: It is called in Clean(self):. If you are asking "why" is it called in the constructor, it is because AFAIK, Sachin's impl requires Clean before reinitialization.
 class FCMJoint:
 
     def __init__(self, device = 'cpu'):
@@ -19,9 +14,10 @@ class FCMJoint:
         self.__gpuCreated = False
         self.__cpuCreated = False
         if device == 'cpu':
-            self.precision = np.float64
+          # CPU solver
+          self.precision = np.float64
         else:
-            self.precision = np.float32
+          self.precision = np.float32
 
     def Initialize(self, numberParticles, hydrodynamicRadius, viscosity,
                    kernType, domType,

@@ -5,7 +5,6 @@
 #include"Grid.h"
 #include"common.h"
 #include"exceptions.h"
-#include"Quadrature.h"
 #include<algorithm>
 
 Grid::Grid() : fG(0), fG_unwrap(0), xG(0), yG(0), zG(0), firstn(0), 

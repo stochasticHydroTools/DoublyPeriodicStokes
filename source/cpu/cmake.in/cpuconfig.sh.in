@@ -27,3 +27,6 @@ export OMP_MAX_ACTIVE_LEVELS=1 # for newer omp versions
 sed -i "/num_threads/c num_threads=${num_threads}" @CMAKE_INSTALL_PREFIX@/python/config.py
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:@CMAKE_INSTALL_PREFIX@/lib
 export PYTHONPATH=${PYTHONPATH}:@CMAKE_INSTALL_PREFIX@/python
+
+#Define this env that informs the module of the execution of this script
+export FCM_CPUCONFIG_LAUNCHED=1

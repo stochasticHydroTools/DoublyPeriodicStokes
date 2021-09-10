@@ -15,17 +15,30 @@ The CPU version of the solver is included in `source/cpu`.
 
 ## USAGE:  
 
-Running make will compile and set up both the CPU and GPU python interfaces for the solver.
-You may have to adapt `compile_flags.txt`, `python_interface/compile_flags.txt`, and the `python_interface/Makefile` to build
-the GPU solver. The CPU solver should compile as is, but there is more information for customizing the build
-in the `source/cpu/README.md`. 
+From DoublyPeriodicStokes, Running 
+```shell
+make 
+```
+will compile and set up both the CPU and GPU python interfaces for the solver.
+
+The top level `Makefile` in DoublyPeriodicStokes contains a section where a user
+can specify the dependency library names/paths, install paths and the like.
 
 If you want to use the Intel compiler for the CPU code, prefix the call to make as
 ```shell
 CPU=Intel make
 ```  
+You can compile both CPU and GPU libraries in debug node through
+```shell
+DEBUG=True make
+```
 
-NOTE: Not useful yet, since reproduce scripts are not included.
+A convenience script for building the CPU library is provided in 
+`cpubuild_cmake.sh`, although it requires `CMake3`. It can executed
+like
+```shell
+INSTALL_DIR=/my/install/dir bash cpubild_cmake.sh [Intel]
+```
   
 ### GPU Python interface
 
@@ -41,9 +54,9 @@ See `python_interface/dpstokesGPU.py` for a usage example. Once compiled and imp
 
 ### CPU Python interface
 
-See the `source/cpu/README.md` for details. Importantly, a file `cpuconfig.sh` will be generated in the `python_interface` folder. 
-Users must source this bash script before using the CPU Python interface in a new shell, and can edit the thread environment 
-settings therein as needed.
+See the `source/cpu/README.md` for details. Importantly, users must source the bash script `cpuconfig.sh`
+before using the CPU Python interface in a new shell, and can edit the thread environment 
+settings therein as needed. 
 
 ## About the spreading/interpolation kernels in the python interface
 

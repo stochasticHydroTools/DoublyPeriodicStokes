@@ -1,6 +1,6 @@
 #include<omp.h>
 #include"LinearSolvers.h"
-#ifdef INTEL
+#ifdef USE_MKL
 #include<mkl_blas.h>
 #else
 #include<cblas.h>
@@ -38,7 +38,7 @@ extern "C"
       double* g_inv = &(G_inv[offset_dg]);
       // solve Ax = b, b is overwritten with A^-1 b
       solve_KBPENTA_real(x, b, stor, Nz, nrhs);
-      #ifdef INTEL
+      #ifdef USE_MKL
       dgemm(&notrans, &notrans, &nrhs, &nrhs, &Nz, &one, 
             c, &nrhs, b, &Nz, &zero, g, &nrhs);
       #else

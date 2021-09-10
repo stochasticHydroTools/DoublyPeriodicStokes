@@ -1,5 +1,5 @@
 #include"DPTools.h"
-#ifdef INTEL
+#ifdef USE_MKL
 #include<mkl_blas.h>
 #include<mkl_lapack.h>
 #else
@@ -14,10 +14,6 @@ const int _one = 1;
 const int _two = 2;
 const char notrans = 'N';
 const char trans = 'T';
-
-#ifndef INTEL
-typedef lapack_complex_double lpComplex;
-#endif
 
 DoublyPeriodicStokes::DoublyPeriodicStokes(const Complex* _Dx, const Complex* _Dy,
                                            const double* _storage_kbp, const Complex* _C,
@@ -802,7 +798,7 @@ extern "C"
       x[4] = fbhat_z; x[5] = fthat_x; 
       x[6] = fthat_y; x[7] = fthat_z; 
       // solve for coefficients of exponentials   
-      #ifdef INTEL
+      #ifdef USE_MKL
       zgesv(&eight, &one, coeffA, &eight, piv, x, &eight, &info);      
       #else
       LAPACKE_zgesv(LAPACK_COL_MAJOR, 8, 1, reinterpret_cast<lapack_complex_double*>(coeffA), 
