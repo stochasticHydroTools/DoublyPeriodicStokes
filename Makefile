@@ -31,7 +31,7 @@ export LAPACKE_LIBS     = -lopenblas -llapacke
 
 # specify where fftw*.h/.so are and select whether to use fftw wisdom (see README)
 # change USE_FFTW_MEASURE to USE_FFTW_PATIENT for more optimal fftw plans
-ifneq ($(cpu), Intel)
+ifneq ($(CPU), Intel)
   export FFTW_FLAGS     = -I/usr/include -L/usr/lib64 -DENABLE_WISDOM -DUSE_FFTW_MEASURE
 endif
 # use stack instead of heap for part of cpu spreading algorithm
@@ -49,11 +49,11 @@ export VERBOSITY        = 3
 export GPU_MODULE_NAME  = uammd
 
 # if you want to use the Intel compiler, set the following
-ifeq ($(cpu),Intel)
+ifeq ($(CPU),Intel)
   # set fftw_install dir
   export FFTW_INSTALL   = $(PWD)/source/cpu/fftw_install
   # set mkl install dir
-  export MKLROOT        = /opt/intel/mkl/include
+  export MKLROOT        = /opt/intel/mkl
   # change USE_FFTW_MEASURE to USE_FFTW_PATIENT for more optimal fftw plans
   export FFTW_FLAGS     = -I$(FFTW_INSTALL)/include -L$(FFTW_INSTALL)/lib -DENABLE_WISDOM -DUSE_FFTW_MEASURE
   export LAPACKE_FLAGS  = -I$(MKLROOT)/include -L$(MKLROOT)/intel64 -DUSE_MKL
