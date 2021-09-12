@@ -120,7 +120,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     err_opt_ave = np.sum(err_opt, axis=(0)) / nP
    
     #### print out and select grid options ############### 
-    print('Optimal grid with adjusted extent:\n')
+    print('Optimal grid with adjusted extent (optInd=-1):\n')
     Nxopt = np.round(Lx / hopt).astype(np.int); Lxopt = hopt * Nxopt
     Nyopt = np.round(Ly / hopt).astype(np.int); Lyopt = hopt * Nyopt
     sout = [['L_x', 'L_y','N_x', 'N_y', 'h','%-err'],
@@ -128,7 +128,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     for row in sout:
       print("\t{:^16}\t{:^16}\t{:^8}\t{:^8}\t{:^16}\t{:^.5}".format(*row))
 
-    print('\nCandidate grids with user-defined extent:\n')
+    print('\nCandidate grids with user-defined extent (optInd=0,1,..):\n')
     sout = [['N_x', 'h','%-err']]
     for j in range(0,len(hx)):
       if not np.isinf(err_test_ave[j]):
@@ -292,7 +292,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     err_opt_ave = np.sum(errm_opt + errd_opt, axis=(0)) / nP
 
     #### print out and select grid options ############### 
-    print('Optimal grid with adjusted extent:\n')
+    print('Optimal grid with adjusted extent (optInd=-1):\n')
     Nxopt = np.round(Lx / hopt).astype(np.int); Lxopt = hopt * Nxopt
     Nyopt = np.round(Ly / hopt).astype(np.int); Lyopt = hopt * Nyopt
     sout = [['L_x', 'L_y','N_x', 'N_y', 'h','%-err'],
@@ -301,7 +301,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     for row in sout:
       print("\t{:^16}\t{:^16}\t{:^8}\t{:^8}\t{:^16}\t{:^.5}".format(*row))
     
-    print('\nCandidate grids with user-defined extent:\n')
+    print('\nCandidate grids with user-defined extent (optInd=0,1,..):\n')
     sout = [['N_x', 'h','%-err']]
     for j in range(0,len(hx)):
       if not np.isinf(err_test_ave[j]):

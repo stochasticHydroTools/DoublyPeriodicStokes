@@ -4,10 +4,10 @@ ifndef calling_from_parent
   $(error $(errormsg))
 endif
 GPU_INCLUDE_FLAGS   = -I$(CUDA_ROOT)/include -I$(UAMMD_ROOT)/src -I$(UAMMD_ROOT)/src/third_party
-DEBUG               = -g -O0
-ifeq ($(debug), True)
-  GPU_DEBUG = $(DEBUG) -G -DUSE_NVTX -DUAMMD_DEBUG
-  export CPU_DEBUG  = $(DEBUG) -DDEBUG 
+DEBUG_FLAGS         = -g -O0
+ifeq ($(DEBUG), True)
+  GPU_DEBUG = $(DEBUG_FLAGS) -G -DUSE_NVTX -DUAMMD_DEBUG
+  export CPU_DEBUG  = $(DEBUG_FLAGS) -DDEBUG 
 else
 GPU_OPTIMIZATION    = -O3
 CPU_OPTIMIZATION    = -O3
@@ -31,9 +31,10 @@ $(GPU_LIBRARY_NAME): python_gpu/uammd_gpu.o python_gpu/uammd_python.o
 
 dpstokesCPU:
 
-ifneq ($(cpu), Intel)
+ifeq ($(CPU), GNU)
 	make -f Makefile.GNU -C ../source/cpu; 
-else
+endif
+ifeq ($(CPU), Intel)
 	make -f Makefile.Intel -C ../source/cpu;
 endif
 

@@ -1,7 +1,7 @@
 CURDIR          = $(shell pwd)
 CXX             = g++ 
 
-ifneq ($(debug), True)
+ifneq ($(DEBUG), True)
   CXXFLAGS      = -I$(CURDIR)/include -w -O3 -march=native -shared -L$(INSTALL_DIR)
 else
   CXXFLAGS      = -I$(CURDIR)/include -w -shared $(CPU_DEBUG) -L$(INSTALL_DIR)

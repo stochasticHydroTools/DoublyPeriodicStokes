@@ -2,35 +2,29 @@
 
 SRC_DIR=/home/srn324/DoublyPeriodicStokes
 INSTALL_DIR=/home/srn324/DoublyPeriodicStokes/python_interface/lib
+CPU=Intel
 
-# NOTE: users should only modify num_threads, OMP_STACKSIZE and thread pinning settings
-#       do not change OMP_NUM_THREADS or the nested parallelism settings
+#################### BEGIN USER EDIT ####################################
 
 # number of threads for OpenMP
-num_threads=6
+num_threads=10
 # let the shell use the maximum amount of stack memory
 ulimit -s unlimited
 # set mem for thread stack
 export OMP_STACKSIZE=256m
-# set num threads env var to 1 and disable nested parallelism
-export OMP_NUM_THREADS=1
-export OMP_NESTED=false
-export OMP_MAX_ACTIVE_LEVELS=1 # for newer omp versions
 
 # thread pinning settings
-#export OMP_PLACES="{0}:6:1"
-#export OMP_PROC_BIND=true
-#export OMP_DISPLAY_ENV=true
+if [ "$CPU" == "GNU" ]; then
+  export OMP_PLACES="{0}:10:1"
+  export OMP_PROC_BIND=true
+  export OMP_DISPLAY_ENV=true
+elif [ "$CPU" == "Intel" ]; then
+  export MKL_THREADING_LAYER=sequential
+  export KMP_AFFINITY="verbose,proclist=[0,1,2,3,4,5,6,7,8,9],explicit"
+fi
 
-# uncomment below if using Intel compiler
-
-#source /opt/intel/mkl/bin/mklvars.sh intel64  
-#export MKL_THREADING_LAYER=sequential
-#export KMP_AFFINITY="verbose,proclist=[0,1,2,3,4,5,6,7,8,9],explicit"
-
+##################### END USER EDIT #######################################
 sed -i "/num_threads/c num_threads=${num_threads}" ${SRC_DIR}/source/cpu/python/config.py
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${INSTALL_DIR}
-export PYTHONPATH=${PYTHONPATH}:${SRC_DIR}/source/cpu/python:${INSTALL_DIR}
-
-#Define this env that informs the module of the execution of this script
+export LD_LIBRARY_PATH=${INSTALL_DIR}:${LD_LIBRARY_PATH}
+export PYTHONPATH=${SRC_DIR}/source/cpu/python:${SRC_DIR}/python_interface:${INSTALL_DIR}:${PYTHONPATH}
 export FCM_CPUCONFIG_LAUNCHED=1

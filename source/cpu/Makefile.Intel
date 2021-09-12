@@ -1,7 +1,7 @@
 CURDIR          = $(shell pwd)
 CXX             = icpc
 
-ifneq ($(debug), True)
+ifneq ($(DEBUG), True)
   CXXFLAGS      = -I$(CURDIR)/include -w -diag-disable remark -Iinclude -O3 -ipo -DUSE_MKL -shared -L$(INSTALL_DIR)
 else
   CXXFLAGS      = -I$(CURDIR)/include -w -shared $(CPU_DEBUG) -L$(INSTALL_DIR)

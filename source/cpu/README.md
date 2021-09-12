@@ -70,9 +70,6 @@ variables for OpenMP (eg. in bash):
 ```shell
 ulimit -s unlimited
 export OMP_STACKSIZE=256m
-export OMP_NESTED=false (or OMP_MAX_ACTIVE_LEVELS=1)
-export OMP_NUM_THREADS=1
-export OMP_MAX_ACTIVE_LEVELS=1
 ```
 
 The `PYTHONPATH` and `LD_LIBRARY_PATH` have to be expanded with the location
@@ -90,11 +87,11 @@ sed -i "/num_threads/c num_threads=${num_threads}" /path/to/DoublyPeriodicStokes
 All OpenMP parallel loops throughout the library will use this number of 
 threads, and nested parallelism is disabled. 
 
-A convenience script `config.sh` is available in the `examples` folder after installation. 
+A convenience script `cpuconfig.sh` is available in the `examples` folder after installation. 
 Executing the following will accomplish the above snippets, and the file can be 
 edited as needed. It must be sourced every time a new shell is used for a run.
 ```shell
-$ source config.sh
+$ source cpuconfig.sh
 ```
 For thread pinning, one must use different settings depending on how the library was built. These
 can be added to config.sh. For example, for a 10 core single socket machine with GNU compilation
@@ -222,11 +219,11 @@ An example workflow for using this script in Bash from a newly created `run`
 directory is provided below:
 ```shell
 cd && mkdir run && cd run
-cp /path/to/DoublyPeriodicStokes/source/cpu/examples/config.sh . 
+cp /path/to/DoublyPeriodicStokes/source/cpu/examples/cpuconfig.sh . 
 cp /path/to/DoublyPeriodicStokes/source/cpu/examples/fcm_example.py .
 cp /path/to/DoublyPeriodicStokes/source/cpu/examples/Test_Data_For_Rollers.tgz .
 tar xvzf Test_Data_For_Rollers.tgz
-source config.sh
+source cpuconfig.sh
 python3 fcm_example.py
 ```
 

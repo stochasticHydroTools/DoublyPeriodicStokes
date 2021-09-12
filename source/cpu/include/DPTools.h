@@ -207,17 +207,6 @@ extern "C"
   */
   void evalTheta(DoublyPeriodicStokes* solver, double theta);
 
-  /* 
-    1D chebyshev transformation to go from function values to cheb coeffs 
-    
-    Parameters:
-      in - input complex data
-      out - output complex Chebyshev coeffs of data
-      plan - a precomputed forward in-place fftw_plan for use on the in arrays
-      Nyx, Nz - total number of points in x,y and num points in z 
-  */ 
-  void chebTransform(const Complex* in, Complex* out, const fftw_plan plan, unsigned int N);
-
   
   /*
     Evaluate the analytical correction to the DP solve to enforce no-slip 
@@ -237,12 +226,6 @@ extern "C"
       dof - degrees of freedom   
       nthreads - num threads for omp loops
   */
-  //void evalCorrectionSol_bottomWall(DoublyPeriodicStokes* solver, 
-  //                                  Complex* Cpcorr, Complex* Cucorr, Complex* Cvcorr,
-  //                                  Complex* Cwcorr, const Complex* fhat,
-  //                                  const double* Kx, const double* Ky,
-  //                                  const double* z, double eta, unsigned int Nyx,
-  //                                  unsigned int Nz, unsigned int dof, int n_threads);
   void evalCorrectionSol_bottomWall(DoublyPeriodicStokes* solver, 
                                     const double* Kx, const double* Ky,
                                     const double* z, double eta, unsigned int Nyx,

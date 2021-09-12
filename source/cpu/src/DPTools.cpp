@@ -46,7 +46,7 @@ DoublyPeriodicStokes::DoublyPeriodicStokes(const Complex* _Dx, const Complex* _D
   offset_dp = offset_cp + str_cp;
   offset_urhs = offset_dp + str_dp;
   offset_cu = offset_urhs + str_urhs;
-  Nk = str_df + str_prhs + str_cp + str_dp + str_urhs + str_cu; 
+  Nk = str_df + str_prhs + str_cp + str_dp + str_urhs + str_cu;
   #pragma omp parallel for num_threads(n_threads)
   for (unsigned int i = 0; i < Nyx; ++i)
   {
@@ -84,6 +84,7 @@ inline void DoublyPeriodicStokes::doublyPeriodicSolve_no_wall()
   memset(U_hat_i, 0, sizeof(double) * Nz * dof); 
   memset(P_hat_r, 0, sizeof(double) * Nz); 
   memset(P_hat_i, 0, sizeof(double) * Nz); 
+  omp_set_max_active_levels(1); 
   #pragma omp parallel for num_threads(n_threads)
   for (unsigned int i = 1; i < Nyx; ++i)
   {
@@ -584,32 +585,6 @@ extern "C"
     solver->evalTheta(theta, 0);
   }
 
-  void chebTransform(const Complex* in, Complex* out, const fftw_plan plan, unsigned int N)
-  {
-    unsigned int ext = 2 * N - 2;
-    Complex* in_ext = (Complex*) fftw_malloc(ext * sizeof(Complex));
-    #pragma omp simd
-    for (unsigned int i = 0; i < N; ++i)
-    {
-      in_ext[i] = in[i];
-    }
-    #pragma omp simd
-    for (unsigned int i = N; i < ext; ++i)
-    {
-      in_ext[i] = in[ext - i];
-    }
-    fftw_execute_dft(plan, reinterpret_cast<fftw_complex*>(in_ext), 
-                     reinterpret_cast<fftw_complex*>(in_ext));
-    out[0] = in_ext[0] / ext;
-    #pragma omp simd
-    for (unsigned int i = 1; i < N - 1; ++i)
-    {
-      out[i] = (in_ext[i] + in_ext[ext - i]) / ext;
-    }
-    out[N-1] = in_ext[N-1] / ext; 
-    fftw_free(in_ext);
-  }
-
   void evalCorrectionSol_bottomWall(DoublyPeriodicStokes* solver, 
                                     const double* Kx, const double* Ky,
                                     const double* z, double eta, unsigned int Nyx,
@@ -629,6 +604,7 @@ extern "C"
         solver->corr_sol_hat[i] = (Complex*) fftw_malloc(n * 4 * sizeof(Complex));     
       }
     }
+    omp_set_max_active_levels(1); 
     #pragma omp parallel for num_threads(n_threads) 
     for (unsigned int i = 1; i < Nyx; ++i)
     {
@@ -743,6 +719,7 @@ extern "C"
         solver->corr_sol_hat[i] = (Complex*) fftw_malloc(n * 4 * sizeof(Complex));     
       }
     }
+    omp_set_max_active_levels(1); 
     #pragma omp parallel for num_threads(n_threads)
     for (unsigned int i = 1; i < Nyx; ++i)
     {
