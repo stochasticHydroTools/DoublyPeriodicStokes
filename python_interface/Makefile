@@ -20,10 +20,10 @@ all: dpstokesCPU dpstokesGPU
 dpstokesGPU: $(GPU_LIBRARY_NAME)
 
 python_gpu/uammd_gpu.o: python_gpu/uammd_wrapper.cu
-	$(NVCC) -w -std=c++14 -DMAXLOGLEVEL=$(VERBOSITY) $(GPU_OPTIMIZATION) $(DOUBLEPRECISION) $(GPU_INCLUDE_FLAGS) $(GPU_DEBUG) -Xcompiler "-fPIC -w -fno-lto" -c $< -o $@  $(LAPACKE_FLAGS)
+	$(NVCC) -w -std=c++14 -DMAXLOGLEVEL=$(VERBOSITY) $(GPU_OPTIMIZATION) $(DOUBLEPRECISION) $(GPU_INCLUDE_FLAGS) $(GPU_DEBUG) -Xcompiler "-fPIC -w" -c $< -o $@  $(LAPACKE_FLAGS)
 
 python_gpu/uammd_python.o: python_gpu/uammd_python.cpp
-	$(CXX) -std=c++14 -O3 $(CPU_DEBUG) $(CPU_OPTIMIZATION) -flto -fPIC -w `$(PYTHON3)-config --includes` -I $(PYBIND_ROOT)/include/ -c $< -o $@
+	$(CXX) -std=c++14 -O3 $(CPU_DEBUG) $(CPU_OPTIMIZATION) -fPIC -w `$(PYTHON3)-config --includes` -I $(PYBIND_ROOT)/include/ -c $< -o $@
 
 $(GPU_LIBRARY_NAME): python_gpu/uammd_gpu.o python_gpu/uammd_python.o
 	mkdir -p $(INSTALL_DIR)

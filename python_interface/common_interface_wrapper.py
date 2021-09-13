@@ -1,10 +1,10 @@
 import numpy as np
-import uammd # GPU solver
 import os
 import sys
 if "FCM_CPUCONFIG_LAUNCHED" not in os.environ:
     print("ERROR: Please source cpuconfig.sh before using this module")
     sys.exit()
+import uammd # GPU solver
 from FCM import *
 
 class FCMJoint:
@@ -60,7 +60,9 @@ class FCMJoint:
     def Clean(self):
         if self.__device == 'cpu' and self.__cpuCreated:
             self.cpusolver.Clean()
+            self.__cpuCreated = False
         elif self.__device == 'gpu' and self.__gpuCreated:
+            self.__gpuCreated = False
             self.gpusolver.clear()
 
     def SetPositions(self, positions):

@@ -53,9 +53,11 @@ export SPREAD_FLAGS     = -DUSE_STACK
 
 # UAMMD can be quite verbose, 5 shows only some messages at initialization/exit
 # 0 will only print critical errors, 1 will print non crashing errors, 
-# 2 will print messages for recoverable exceptions, 
-# 3 will print warnings, 15 will print A LOT.
-export VERBOSITY        = 3
+# 2 will print messages for recoverable exceptions,
+# 3 will print warnings,
+# 5 will print messages (initialization, parameters, ...)
+# 15 will print A LOT.
+export VERBOSITY        = 5
 
 # name of gpu module
 export GPU_MODULE_NAME  = uammd
