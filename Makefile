@@ -13,9 +13,9 @@
 # specify compiler type - GNU|Intel (only used for cpu build)
 export CPU             ?= Intel
 # specify location of DoublyPeriodicStokes directory
-export DPSTOKES_ROOT          = /home/srn324/DoublyPeriodicStokes
+export DPSTOKES_ROOT    = /home/srn324/DoublyPeriodicStokes
 # specify desired location of shared libraries
-export DPSTOKES_INSTALL      = $(DPSTOKES_ROOT)/python_interface/lib
+export DPSTOKES_INSTALL = $(DPSTOKES_ROOT)/python_interface/lib
 # name of the python3 executable
 export PYTHON3          = python3
 # cuda compiler and bin 
