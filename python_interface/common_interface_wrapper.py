@@ -4,8 +4,16 @@ import sys
 if "FCM_CPUCONFIG_LAUNCHED" not in os.environ:
     print("ERROR: Please source cpuconfig.sh before using this module")
     sys.exit()
-import uammd # GPU solver
-from FCM import *
+try:
+  import uammd # GPU solver
+except:
+  print('Could not load uammd GPU Python interface')
+
+try:
+  from FCM import *
+except:
+  print('Could not load CPU Python interface')
+  from GridAndKernelConfig import *
 
 class FCMJoint:
 

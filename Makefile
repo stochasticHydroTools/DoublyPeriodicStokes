@@ -13,14 +13,14 @@
 # specify compiler type - GNU|Intel (only used for cpu build)
 export CPU             ?= Intel
 # specify location of DoublyPeriodicStokes directory
-export SRC_DIR          = /home/srn324/DoublyPeriodicStokes
+export DPSTOKES_ROOT          = /home/srn324/DoublyPeriodicStokes
 # specify desired location of shared libraries
-export INSTALL_DIR      = $(SRC_DIR)/python_interface/lib
+export DPSTOKES_INSTALL      = $(DPSTOKES_ROOT)/python_interface/lib
 # name of the python3 executable
 export PYTHON3          = python3
 # cuda compiler and bin 
 export NVCC             = nvcc
-export CUDA_ROOT        = /usr/local/stow/cuda-10.2/bin
+export CUDA_ROOT        = "$(shell dirname which nvcc)"/..
 # specify where lapacke.h and liblapacke.so 
 #   openblas
 export LAPACKE_FLAGS    = -I/usr/include/openblas -L/usr/lib64
@@ -36,7 +36,7 @@ ifneq ($(CPU), Intel)
 endif
 ifeq ($(CPU),Intel)
   # set fftw_install dir (custom install needed for intel cc)
-  export FFTW_INSTALL   = $(SRC_DIR)/source/cpu/fftw_install
+  export FFTW_INSTALL   = $(DPSTOKES_ROOT)/source/cpu/fftw_install
   # set mkl install dir
   export MKLROOT       ?= /opt/intel/mkl
   export FFTW_FLAGS     = -I$(FFTW_INSTALL)/include -L$(FFTW_INSTALL)/lib -DENABLE_WISDOM -DUSE_FFTW_MEASURE
@@ -66,10 +66,10 @@ export GPU_MODULE_NAME  = uammd
 export DEBUG           ?= False
 
 # root of uammd
-export UAMMD_ROOT       = $(SRC_DIR)/source/gpu/uammd
+export UAMMD_ROOT       = $(DPSTOKES_ROOT)/source/gpu/uammd
 
 # This variable can be commented if the system provides pybind11
-export PYBIND_ROOT      = $(SRC_DIR)/python_interface/pybind11
+export PYBIND_ROOT      = $(DPSTOKES_ROOT)/python_interface/pybind11
 
 ################################ END USER EDIT ##################################
 
@@ -79,22 +79,22 @@ all: python
 python: python_cpu python_gpu
 
 python_cpu:
-	make dpstokesCPU -C $(SRC_DIR)/python_interface
-	@sed -i "/SRC_DIR=/c SRC_DIR=$(SRC_DIR)" $(SRC_DIR)/python_interface/cpuconfig.sh
-	@sed -i "/INSTALL_DIR=/c INSTALL_DIR=$(INSTALL_DIR)" $(SRC_DIR)/python_interface/cpuconfig.sh
-	@sed -i "/CPU=/c CPU=$(CPU)" $(SRC_DIR)/python_interface/cpuconfig.sh
+	make dpstokesCPU -C $(DPSTOKES_ROOT)/python_interface
+	@sed -i "/DPSTOKES_ROOT=/c DPSTOKES_ROOT=$(DPSTOKES_ROOT)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
+	@sed -i "/DPSTOKES_INSTALL=/c DPSTOKES_INSTALL=$(DPSTOKES_INSTALL)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
+	@sed -i "/CPU=/c CPU=$(CPU)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 
 python_gpu:
-	make dpstokesGPU -C $(SRC_DIR)/python_interface
-	@sed -i "/SRC_DIR=/c SRC_DIR=$(SRC_DIR)" $(SRC_DIR)/python_interface/cpuconfig.sh
-	@sed -i "/INSTALL_DIR=/c INSTALL_DIR=$(INSTALL_DIR)" $(SRC_DIR)/python_interface/cpuconfig.sh
-	@sed -i "/CPU=/c CPU=$(CPU)" $(SRC_DIR)/python_interface/cpuconfig.sh
+	make dpstokesGPU -C $(DPSTOKES_ROOT)/python_interface
+	@sed -i "/DPSTOKES_ROOT=/c DPSTOKES_ROOT=$(DPSTOKES_ROOT)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
+	@sed -i "/DPSTOKES_INSTALL=/c DPSTOKES_INSTALL=$(DPSTOKES_INSTALL)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
+	@sed -i "/CPU=/c CPU=$(CPU)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 
 clean:
-	make clean -C $(SRC_DIR)/python_interface
+	make clean -C $(DPSTOKES_ROOT)/python_interface
 
 clean_cpu:
-	make clean_cpu -C $(SRC_DIR)/python_interface
+	make clean_cpu -C $(DPSTOKES_ROOT)/python_interface
 
 clean_gpu:
-	make clean_gpu -C $(SRC_DIR)/python_interface
+	make clean_gpu -C $(DPSTOKES_ROOT)/python_interface

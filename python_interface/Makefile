@@ -13,7 +13,7 @@ GPU_OPTIMIZATION    = -O3
 CPU_OPTIMIZATION    = -O3
 endif
 
-GPU_LIBRARY_NAME    = $(INSTALL_DIR)/$(GPU_MODULE_NAME)$(shell $(PYTHON3)-config --extension-suffix)
+GPU_LIBRARY_NAME    = $(DPSTOKES_INSTALL)/$(GPU_MODULE_NAME)$(shell $(PYTHON3)-config --extension-suffix)
 
 all: dpstokesCPU dpstokesGPU
 
@@ -26,7 +26,7 @@ python_gpu/uammd_python.o: python_gpu/uammd_python.cpp
 	$(CXX) -std=c++14 -O3 $(CPU_DEBUG) $(CPU_OPTIMIZATION) -fPIC -w `$(PYTHON3)-config --includes` -I $(PYBIND_ROOT)/include/ -c $< -o $@
 
 $(GPU_LIBRARY_NAME): python_gpu/uammd_gpu.o python_gpu/uammd_python.o
-	mkdir -p $(INSTALL_DIR)
+	mkdir -p $(DPSTOKES_INSTALL)
 	$(NVCC) $(GPU_OPTIMIZATION) $(GPU_DEBUG) -w -shared $^ -o $@ -lcufft -lnvToolsExt $(LAPACKE_LIBS) $(MKL_LIBS)
 
 dpstokesCPU:
@@ -41,7 +41,7 @@ endif
 clean: clean_cpu clean_gpu
 
 clean_cpu:
-	rm -rf $(INSTALL_DIR)/lib*.so
+	rm -rf $(DPSTOKES_INSTALL)/lib*.so
 
 clean_gpu:
-	rm -rf python_gpu/uammd_gpu.o python_gpu/uammd_python.o $(INSTALL_DIR)/uammd*.so
+	rm -rf python_gpu/uammd_gpu.o python_gpu/uammd_python.o $(DPSTOKES_INSTALL)/uammd*.so

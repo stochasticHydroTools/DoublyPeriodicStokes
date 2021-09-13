@@ -2,9 +2,9 @@ CURDIR          = $(shell pwd)
 CXX             = g++ 
 
 ifneq ($(DEBUG), True)
-  CXXFLAGS      = -I$(CURDIR)/include -w -O3 -march=native -shared -L$(INSTALL_DIR)
+  CXXFLAGS      = -I$(CURDIR)/include -w -O3 -march=native -shared -L$(DPSTOKES_INSTALL)
 else
-  CXXFLAGS      = -I$(CURDIR)/include -w -shared $(CPU_DEBUG) -L$(INSTALL_DIR)
+  CXXFLAGS      = -I$(CURDIR)/include -w -shared $(CPU_DEBUG) -L$(DPSTOKES_INSTALL)
 endif
 
 chebSRC         = src/Quadrature.cpp
@@ -27,54 +27,54 @@ LIBS_           = libcheb.so libgrid.so libparticles.so libspreadInterp.so libsp
                   libspreadInterpDerivY.so libspreadInterpDerivZ.so libtransform.so liblinSolve.so\
                   libdpTools.so libBC.so
 
-LIBS            = $(patsubst %,$(INSTALL_DIR)/%,$(LIBS_))
+LIBS            = $(patsubst %,$(DPSTOKES_INSTALL)/%,$(LIBS_))
 
 all: $(LIBS)
 
-$(INSTALL_DIR)/libcheb.so: $(chebSRC) $(chebINC)
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libcheb.so: $(chebSRC) $(chebINC)
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(chebSRC) $(CXXFLAGS) -fPIC -fopenmp
 
-$(INSTALL_DIR)/libgrid.so: $(gridSRC) $(gridINC) 
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libgrid.so: $(gridSRC) $(gridINC) 
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(gridSRC) $(CXXFLAGS) $(FFTW_FLAGS) -lfftw3 -lm -fPIC -fopenmp
 
-$(INSTALL_DIR)/libparticles.so: $(particlesSRC) $(particlesINC) $(INSTALL_DIR)/libgrid.so $(INSTALL_DIR)/libcheb.so
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libparticles.so: $(particlesSRC) $(particlesINC) $(DPSTOKES_INSTALL)/libgrid.so $(DPSTOKES_INSTALL)/libcheb.so
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(particlesSRC) $(CXXFLAGS) -fPIC -fopenmp -lgrid -lcheb
 
-$(INSTALL_DIR)/libspreadInterp.so: $(spreadInterpSRC) $(spreadInterpINC) $(INSTALL_DIR)/libparticles.so
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libspreadInterp.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -fPIC -fopenmp -lparticles
 
-$(INSTALL_DIR)/libspreadInterpDerivX.so: $(spreadInterpSRC) $(spreadInterpINC) $(INSTALL_DIR)/libparticles.so
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libspreadInterpDerivX.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_X -fPIC -fopenmp -lparticles
   
-$(INSTALL_DIR)/libspreadInterpDerivY.so: $(spreadInterpSRC) $(spreadInterpINC) $(INSTALL_DIR)/libparticles.so
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libspreadInterpDerivY.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_Y -fPIC -fopenmp -lparticles
 
-$(INSTALL_DIR)/libspreadInterpDerivZ.so: $(spreadInterpSRC) $(spreadInterpINC) $(INSTALL_DIR)/libparticles.so
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libspreadInterpDerivZ.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_Z -fPIC -fopenmp -lparticles
 
-$(INSTALL_DIR)/libtransform.so: $(transformSRC) $(transformINC)
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libtransform.so: $(transformSRC) $(transformINC)
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(transformSRC) $(CXXFLAGS) $(FFTW_FLAGS) -lfftw3_omp -lfftw3 -lm -fopenmp -fPIC
 
-$(INSTALL_DIR)/liblinSolve.so: $(linSolveSRC) $(linSolveINC)
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/liblinSolve.so: $(linSolveSRC) $(linSolveINC)
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(linSolveSRC) $(CXXFLAGS) $(FFTW_FLAGS) $(LAPACKE_FLAGS) -lm $(LAPACKE_LIBS) -lfftw3 -fopenmp -fPIC
 
-$(INSTALL_DIR)/libdpTools.so: $(dpToolsSRC) $(dpToolsINC) $(INSTALL_DIR)/liblinSolve.so
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libdpTools.so: $(dpToolsSRC) $(dpToolsINC) $(DPSTOKES_INSTALL)/liblinSolve.so
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(dpToolsSRC) $(CXXFLAGS) $(FFTW_FLAGS) $(LAPACKE_FLAGS) -lm $(LAPACKE_LIBS) \
 	-DHAVE_LAPACK_CONFIG_H -DLAPACK_COMPLEX_STRUCTURE -fopenmp -lfftw3_omp -lfftw3 -fPIC -llinSolve
 
-$(INSTALL_DIR)/libBC.so: $(bcSRC) $(bcINC) $(INSTALL_DIR)/libgrid.so $(INSTALL_DIR)/libparticles.so
-	@mkdir -p $(INSTALL_DIR)
+$(DPSTOKES_INSTALL)/libBC.so: $(bcSRC) $(bcINC) $(DPSTOKES_INSTALL)/libgrid.so $(DPSTOKES_INSTALL)/libparticles.so
+	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(bcSRC) $(CXXFLAGS) -fPIC -fopenmp -lgrid -lparticles 
 
 clean:
-	rm -rf $(INSTALL_DIR)
+	rm -rf $(DPSTOKES_INSTALL)
