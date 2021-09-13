@@ -14,13 +14,14 @@ ulimit -s unlimited
 export OMP_STACKSIZE=256m
 
 # thread pinning settings
-if [ "$CPU" == "GNU" ]; then
+# Donev changed this to if/else since CPU=GNU is not actually mentioned
+if [ "$CPU" == "Intel" ]; then
+  export MKL_THREADING_LAYER=sequential
+  export KMP_AFFINITY="verbose,proclist=[0,1,2,3,4,5,6,7,8,9],explicit"
+else
   export OMP_PLACES="{0}:10:1"
   export OMP_PROC_BIND=true
   export OMP_DISPLAY_ENV=true
-elif [ "$CPU" == "Intel" ]; then
-  export MKL_THREADING_LAYER=sequential
-  export KMP_AFFINITY="verbose,proclist=[0,1,2,3,4,5,6,7,8,9],explicit"
 fi
 
 ##################### END USER EDIT #######################################

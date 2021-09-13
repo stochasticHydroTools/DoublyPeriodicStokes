@@ -24,7 +24,7 @@ class FCMJoint:
         if device == 'cpu':
           # CPU solver
           self.precision = np.float64
-        else:
+        else: # Donev for Raul: Need to fix this (just use sed?) or remove pretense of DOUBLE_PRECISION for UAMMD
           self.precision = np.float32
 
     def Initialize(self, numberParticles, hydrodynamicRadius, viscosity,
@@ -81,6 +81,8 @@ class FCMJoint:
 
     def Mdot(self, forces, torques=np.array(0)):
         if self.__device == 'cpu':
+            # Donev for Sachin: Please fix your Mdot to take forces and torques separately   
+            # Ideally, the only line inside the if will be the actual call to Mdot
             if self.__has_torque:
                 F = np.concatenate((forces, torques))
             else:
