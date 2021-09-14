@@ -1,4 +1,4 @@
-#Raul P. Pelaez 2021. Common interface for the FCM (Triply periodic + DPStokes) CPU (Sachin) and GPU (Raul) solvers.
+#Common interface for the FCM (Triply periodic + DPStokes) CPU (Sachin Natesh) and GPU (Raul Perez) solvers.
 #Examples on the interfaces for the CPU and GPU versions are available in dpstokesCPU.py and dpstokesGPU.py respectively.
 #import common_interface_wrapper and run help(FCMJoint) for detailed usage information.
 import numpy as np

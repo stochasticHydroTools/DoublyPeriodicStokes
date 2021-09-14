@@ -116,10 +116,10 @@ class FCMJoint:
         """
         if self.__device == 'cpu':
             MF, MT  = self.cpusolver.Mdot(forces, torques)
-            return MF, MT
         elif self.__device == 'gpu':
             MT = np.zeros(torques.size, self.precision)
             MF = np.zeros(forces.size, self.precision)
             self.gpusolver.Mdot(forces=forces, torques=torques,
                                 velocities=MF, angularVelocities=MT)
-            return MF, MT
+        
+        return MF, MT
