@@ -14,7 +14,7 @@ endif
 
 GPU_LIBRARY_NAME    = $(DPSTOKES_INSTALL)/$(GPU_MODULE_NAME)$(shell $(PYTHON3)-config --extension-suffix)
 
-PYTHON_WRAPPER_DIR :=$(UAMMD_ROOT)/../python_wrapper
+PYTHON_WRAPPER_DIR :=$(DPSTOKES_ROOT)/source/gpu/python_wrapper
 
 all: dpstokesGPU
 
