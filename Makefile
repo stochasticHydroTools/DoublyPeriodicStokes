@@ -25,7 +25,7 @@ export DEBUG           ?= False
 # CPU/OpenMP settings
 #---------------------------------------------------
 # specify compiler type - GNU|Intel (only used for cpu build)
-export CPU             ?= Intel
+export CPU             ?= GNU
 
 # specify where lapacke.h and liblapacke.so 
 # For openblas (see CPU=Intel below for Intel's MKL)
@@ -58,8 +58,7 @@ export SPREAD_FLAGS     = -DUSE_STACK
 export NVCC             = nvcc
 export CUDA_ROOT        = "$(shell dirname `which $(NVCC)`)"/..
 
-# uncomment for double precision - UAMMD is compiled in single by default
-# Donev for Raul: This doesn't really work at present unless you change self.precision = np.float32 in the common interface
+# Uncomment for double precision - UAMMD is compiled in single by default
 #export DOUBLEPRECISION = -DDOUBLE_PRECISION 
 
 # UAMMD can be quite verbose, 5 shows only some messages at initialization/exit
@@ -70,7 +69,7 @@ export CUDA_ROOT        = "$(shell dirname `which $(NVCC)`)"/..
 # 15 will print A LOT.
 export VERBOSITY        = 5
 
-# name of gpu module
+# name of gpu module (changing this will require to change the common_wrapper*py code accordingly)
 export GPU_MODULE_NAME  = uammd
 
 # root of uammd (change if compiled separately)
@@ -86,14 +85,13 @@ all: python
 
 python: python_cpu python_gpu
 
-python_cpu:
+python_cpu: envconfig
 	make dpstokesCPU -C $(DPSTOKES_ROOT)/python_interface
-	@sed -i "/DPSTOKES_ROOT=/c DPSTOKES_ROOT=$(DPSTOKES_ROOT)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
-	@sed -i "/DPSTOKES_INSTALL=/c DPSTOKES_INSTALL=$(DPSTOKES_INSTALL)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
-	@sed -i "/CPU=/c CPU=$(CPU)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 
-python_gpu:
+python_gpu: envconfig
 	make dpstokesGPU -C $(DPSTOKES_ROOT)/python_interface
+
+envconfig:
 	@sed -i "/DPSTOKES_ROOT=/c DPSTOKES_ROOT=$(DPSTOKES_ROOT)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 	@sed -i "/DPSTOKES_INSTALL=/c DPSTOKES_INSTALL=$(DPSTOKES_INSTALL)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 	@sed -i "/CPU=/c CPU=$(CPU)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
