@@ -78,7 +78,7 @@ import numpy as np
 import uammd
 np.random.seed(0)
 #Precision for the data arrays, ensure it is the same as the compiled library (single by default)
-precision = np.float32
+precision = np.float32 if uammd.getPrecision() == 'single' else np.float64
 
 #Some arbitrary parameters
 
