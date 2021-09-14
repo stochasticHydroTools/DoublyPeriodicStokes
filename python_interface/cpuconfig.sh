@@ -1,8 +1,8 @@
 #!/bin/bash
 
-SRC_DIR=/home/srn324/DoublyPeriodicStokes
-INSTALL_DIR=/home/srn324/DoublyPeriodicStokes/python_interface/lib
-CPU=Intel
+DPSTOKES_ROOT=
+DPSTOKES_INSTALL=
+CPU=GNU
 
 #################### BEGIN USER EDIT ####################################
 
@@ -14,7 +14,7 @@ ulimit -s unlimited
 export OMP_STACKSIZE=256m
 
 # thread pinning settings
-# Donev changed this to if/else since CPU=GNU is not actually mentioned
+CPU=GNU
 if [ "$CPU" == "Intel" ]; then
   export MKL_THREADING_LAYER=sequential
   export KMP_AFFINITY="verbose,proclist=[0,1,2,3,4,5,6,7,8,9],explicit"
@@ -25,7 +25,7 @@ else
 fi
 
 ##################### END USER EDIT #######################################
-sed -i "/num_threads/c num_threads=${num_threads}" ${SRC_DIR}/source/cpu/python/config.py
-export LD_LIBRARY_PATH=${INSTALL_DIR}:${LD_LIBRARY_PATH}
-export PYTHONPATH=${SRC_DIR}/source/cpu/python:${SRC_DIR}/python_interface:${INSTALL_DIR}:${PYTHONPATH}
+sed -i "/num_threads/c num_threads=${num_threads}" ${DPSTOKES_ROOT}/source/cpu/python/config.py
+export LD_LIBRARY_PATH=${DPSTOKES_INSTALL}:${LD_LIBRARY_PATH}
+export PYTHONPATH=${DPSTOKES_ROOT}/source/cpu/python:${DPSTOKES_ROOT}/python_interface:${DPSTOKES_INSTALL}:${PYTHONPATH}
 export FCM_CPUCONFIG_LAUNCHED=1
