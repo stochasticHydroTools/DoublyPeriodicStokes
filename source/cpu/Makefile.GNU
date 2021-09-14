@@ -41,23 +41,23 @@ $(DPSTOKES_INSTALL)/libgrid.so: $(gridSRC) $(gridINC)
 
 $(DPSTOKES_INSTALL)/libparticles.so: $(particlesSRC) $(particlesINC) $(DPSTOKES_INSTALL)/libgrid.so $(DPSTOKES_INSTALL)/libcheb.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(particlesSRC) $(CXXFLAGS) -fPIC -fopenmp -lgrid -lcheb
+	$(CXX) -o $@ $(particlesSRC) $(CXXFLAGS) -lfftw3 -fPIC -fopenmp -lgrid -lcheb
 
 $(DPSTOKES_INSTALL)/libspreadInterp.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -fPIC -fopenmp -lparticles
+	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -fPIC -fopenmp -lparticles
 
 $(DPSTOKES_INSTALL)/libspreadInterpDerivX.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_X -fPIC -fopenmp -lparticles
+	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -DTORQUE_X -fPIC -fopenmp -lparticles
   
 $(DPSTOKES_INSTALL)/libspreadInterpDerivY.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_Y -fPIC -fopenmp -lparticles
+	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -DTORQUE_Y -fPIC -fopenmp -lparticles
 
 $(DPSTOKES_INSTALL)/libspreadInterpDerivZ.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -DTORQUE_Z -fPIC -fopenmp -lparticles
+	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -DTORQUE_Z -fPIC -fopenmp -lparticles
 
 $(DPSTOKES_INSTALL)/libtransform.so: $(transformSRC) $(transformINC)
 	@mkdir -p $(DPSTOKES_INSTALL)
