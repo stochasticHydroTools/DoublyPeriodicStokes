@@ -183,41 +183,50 @@ public:
   3- Call Mdot
   4- Call clear to free any memory allocated by the module and ensure a gracious finish
 
-initialize can be called again in order to change the parameters.
-Calling initialize twice is cheaper than calling initialize, then clear, then initialize again.
+  initialize can be called again in order to change the parameters.
+  Calling initialize twice is cheaper than calling initialize, then clear, then initialize again.
 
- */
-  //Initialize the modules with a certain set of parameters
-  //Reinitializes if the module was already initialized
-void DPStokesPython::initialize(PyParameters pypar, int numberParticles){
-    dpstokes = std::make_shared<DPStokesUAMMD>(pypar, numberParticles);
+*/
+//Initialize the modules with a certain set of parameters
+//Reinitializes if the module was already initialized
+void DPStokesGlue::initialize(PyParameters pypar, int numberParticles){
+  dpstokes = std::make_shared<DPStokesUAMMD>(pypar, numberParticles);
+}
+
+//Clears all memory allocated by the module.
+//This leaves the module in an unusable state until initialize is called again.
+void DPStokesGlue::clear(){
+  dpstokes->sys->finish();
+  dpstokes.reset();
+}
+
+//Set positions to compute mobility matrix
+void DPStokesGlue::setPositions(const real* h_pos){
+  throwIfInvalid();
+  dpstokes->setPositions(h_pos);
+}
+
+//Compute the dot product of the mobility matrix with the forces and/or torques acting on the previously provided positions
+void DPStokesGlue::Mdot(const real* h_forces, const real* h_torques,
+			real* h_MF,
+			real* h_MT){
+  throwIfInvalid();
+  dpstokes->Mdot(h_forces, h_torques, h_MF, h_MT);
+}
+
+
+void DPStokesGlue::throwIfInvalid(){
+  if(not dpstokes){
+    throw std::runtime_error("DPStokes is not initialized. Call Initialize first");
   }
+}
 
-  //Clears all memory allocated by the module.
-  //This leaves the module in an unusable state until initialize is called again.
-  void DPStokesPython::clear(){
-    dpstokes->sys->finish();
-    dpstokes.reset();
-  }
-
-  //Set positions to compute mobility matrix
-  void DPStokesPython::setPositions(const real* h_pos){
-    throwIfInvalid();
-    dpstokes->setPositions(h_pos);
-  }
-
-  //Compute the dot product of the mobility matrix with the forces and/or torques acting on the previously provided positions
-  void DPStokesPython::Mdot(const real* h_forces, const real* h_torques,
-	    real* h_MF,
-	    real* h_MT){
-    throwIfInvalid();
-    dpstokes->Mdot(h_forces, h_torques, h_MF, h_MT);
-  }
-
-
-  void DPStokesPython::throwIfInvalid(){
-    if(not dpstokes){
-      throw std::runtime_error("DPStokes is not initialized. Call Initialize first");
-    }
-  }
-
+namespace uammd_wrapper{
+std::string getPrecision() {
+#ifndef DOUBLE_PRECISION
+  return "single";
+#else
+  return "double"
+#endif
+}
+}

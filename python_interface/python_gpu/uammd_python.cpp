@@ -4,14 +4,14 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-class DPStokesPython2{
-  std::shared_ptr<DPStokesPython> dpstokes;
+class DPStokesPython{
+  std::shared_ptr<DPStokesGlue> dpstokes;
 public:
 
   //Initialize the modules with a certain set of parameters
   //Reinitializes if the module was already initialized
   void initialize(PyParameters pypar, int numberParticles){
-    dpstokes = std::make_shared<DPStokesPython>();
+    dpstokes = std::make_shared<DPStokesGlue>();
     dpstokes->initialize(pypar, numberParticles);
   }
 
@@ -30,23 +30,25 @@ public:
     dpstokes->Mdot(h_forces.data(), h_torques.data(),
 		   h_MF.mutable_data(), h_MT.mutable_data());
   }
+
 };
 
 //Pybind bindings
 PYBIND11_MODULE(uammd, m) {
   m.doc() = "UAMMD DPStokes Python interface";
-  py::class_<DPStokesPython2>(m, "DPStokes").
+  py::class_<DPStokesPython>(m, "DPStokes").
     def(py::init()).
-    def("initialize", &DPStokesPython2::initialize,
+    def("initialize", &DPStokesPython::initialize,
 	"Initialize the DPStokes module, can be called on an already initialize module to change the parameters.",
 	"Parameters"_a, "numberParticles"_a).
-    def("clear", &DPStokesPython2::clear, "Release all memory allocated by the module").
-    def("setPositions", &DPStokesPython2::setPositions, "Set the positions to compute the mobility matrix",
+    def("clear", &DPStokesPython::clear, "Release all memory allocated by the module").
+    def("setPositions", &DPStokesPython::setPositions, "Set the positions to compute the mobility matrix",
 	"positions"_a).
-    def("Mdot", &DPStokesPython2::Mdot, "Computes the product of the Mobility tensor with the provided forces and torques. If torques are not present, they are assumed to be zero and angular displacements will not be computed",
+    def("Mdot", &DPStokesPython::Mdot, "Computes the product of the Mobility tensor with the provided forces and torques. If torques are not present, they are assumed to be zero and angular displacements will not be computed",
 	"forces"_a, "torques"_a = py::array_t<real>(),
 	"velocities"_a, "angularVelocities"_a = py::array_t<real>());
-  
+  m.def("getPrecision", &uammd_wrapper::getPrecision, "Get the precision mode uammd was compiled for (returns either 'single' or 'double'");
+
   py::class_<PyParameters>(m, "StokesParameters").
     def(py::init([](real viscosity,
 		    real  Lx, real Ly, real zmin, real zmax,

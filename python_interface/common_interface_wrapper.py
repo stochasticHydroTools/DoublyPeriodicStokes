@@ -22,10 +22,9 @@ class FCMJoint:
         self.__gpuCreated = False
         self.__cpuCreated = False
         if device == 'cpu':
-          # CPU solver
           self.precision = np.float64
-        else: # Donev for Raul: Need to fix this (just use sed?) or remove pretense of DOUBLE_PRECISION for UAMMD
-          self.precision = np.float32
+        else:
+          self.precision = np.float32 if uammd.getPrecision() == 'single' else np.float64
 
     def Initialize(self, numberParticles, hydrodynamicRadius, viscosity,
                    kernType, domType,

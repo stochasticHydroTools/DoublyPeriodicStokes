@@ -26,7 +26,7 @@ struct PyParameters{
 };
 
 class DPStokesUAMMD;
-class DPStokesPython{
+class DPStokesGlue{
   std::shared_ptr<DPStokesUAMMD> dpstokes;
 public:
 
@@ -49,3 +49,6 @@ private:
   void throwIfInvalid();
 };
 
+namespace uammd_wrapper{
+  std::string getPrecision();
+}
