@@ -9,10 +9,7 @@ num_threads=6
 ulimit -s unlimited
 # set mem for thread stack
 export OMP_STACKSIZE=256m
-# set num threads env var to 1 and disable nested parallelism
-export OMP_NUM_THREADS=1
-export OMP_NESTED=false
-export OMP_MAX_ACTIVE_LEVELS=1 # for newer omp versions
+
 # thread pinning settings
 #export OMP_PLACES="{0}:6:1"
 #export OMP_PROC_BIND=true

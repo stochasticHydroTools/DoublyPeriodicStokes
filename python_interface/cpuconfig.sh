@@ -2,7 +2,7 @@
 
 DPSTOKES_ROOT=
 DPSTOKES_INSTALL=
-CPU=GNU
+CPU=
 
 #################### BEGIN USER EDIT ####################################
 

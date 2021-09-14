@@ -39,13 +39,8 @@ problem.SetPositions(xP)
 torques = np.random.normal(0, 1, 3 * nP) 
 forces = np.random.normal(0, 1, 3 * nP)
 
-if has_torque:
-  F = np.concatenate((forces,torques))
-else:
-  F = forces
-
 # solve the mobility problem
-V = problem.Mdot(F)
+vP, omegaP = problem.Mdot(forces, torques)
 
 # clear memory
 problem.Clean()
@@ -55,10 +50,10 @@ print("Positions of the first three particles: ")
 xP = np.reshape(xP, (nP, 3));
 print(xP[0:3])
 
-MF = np.reshape(V[0:3*nP], (nP, 3));
+MF = np.reshape(vP, (nP, 3));
 print("Linear velocity of the first three particles: ")
 print(MF[0:3])
 
-MT = np.reshape(V[3*nP::], (nP, 3));
+MT = np.reshape(omegaP, (nP, 3));
 print("Angular velocity of the first 3 particles: ")
 print(MT[0:3])

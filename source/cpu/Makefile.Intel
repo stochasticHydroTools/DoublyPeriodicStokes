@@ -4,7 +4,7 @@ CXX             = icpc
 ifneq ($(DEBUG), True)
   CXXFLAGS      = -I$(CURDIR)/include -w -diag-disable remark -Iinclude -O3 -ipo -DUSE_MKL -shared -L$(DPSTOKES_INSTALL)
 else
-  CXXFLAGS      = -I$(CURDIR)/include -w -shared $(CPU_DEBUG) -L$(DPSTOKES_INSTALL)
+  CXXFLAGS      = -I$(CURDIR)/include -w -shared -g -O0 -DDEBUG -L$(DPSTOKES_INSTALL)
 endif
 
 chebSRC         = src/Quadrature.cpp
@@ -88,6 +88,3 @@ $(DPSTOKES_INSTALL)/libdpTools.so: $(dpToolsSRC) $(dpToolsINC) $(DPSTOKES_INSTAL
 $(DPSTOKES_INSTALL)/libBC.so: $(bcSRC) $(bcINC) $(DPSTOKES_INSTALL)/libgrid.so $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(bcSRC) $(CXXFLAGS) -xHost -qopenmp -fpic -lgrid -lparticles 
-
-clean:
-	rm -rf $(DPSTOKES_INSTALL)

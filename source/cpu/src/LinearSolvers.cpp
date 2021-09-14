@@ -17,6 +17,7 @@ extern "C"
     const char notrans = 'N';
     int nrhs = 2; int Na = 3 * Nz - 4, Ns = Na + 1;
     double* Xpenta = (double*) fftw_malloc(Nyx * nrhs * Nz * sizeof(Complex));
+    unsigned int maxlev = omp_get_max_active_levels();
     omp_set_max_active_levels(1); 
     #pragma omp parallel for num_threads(n_threads)
     for (unsigned int i = 1; i < Nyx; ++i)
@@ -55,5 +56,6 @@ extern "C"
       g_inv[3] = g[0] * det;
     }
     fftw_free(Xpenta);
+    omp_set_max_active_levels(maxlev); 
   }
 }

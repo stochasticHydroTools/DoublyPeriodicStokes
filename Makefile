@@ -19,8 +19,6 @@ export PYTHON3          = python3
 # if True, compilation will use debug mode for cpu and gpu code
 export DEBUG           ?= False
 
-# Donev split this into two sections for improved organization (but you can use #### if you want):
-
 #---------------------------------------------------
 # CPU/OpenMP settings
 #---------------------------------------------------
@@ -31,7 +29,6 @@ export CPU             ?= GNU
 # For openblas (see CPU=Intel below for Intel's MKL)
 export LAPACKE_FLAGS    = -I/usr/include/openblas -L/usr/lib64
 export LAPACKE_LIBS     = -lopenblas -llapacke
-# Donev removed MKL stuff here since it is below (I don't like commented out sections in general)
 
 # specify where fftw*.h/.so are and select whether to use fftw wisdom (see README)
 ifeq ($(CPU),Intel)
@@ -43,7 +40,7 @@ ifeq ($(CPU),Intel)
   # override lapack flags/libs to always use MKL for best performance
   export LAPACKE_FLAGS  = -I$(MKLROOT)/include -L$(MKLROOT)/lib/intel64 -DUSE_MKL
   export LAPACKE_LIBS   = -lmkl_rt -lpthread -ldl
-else # Donev changed this to else
+else 
   # change USE_FFTW_MEASURE to USE_FFTW_PATIENT for more optimal fftw plans
   export FFTW_FLAGS     = -I/usr/include -L/usr/lib64 -DENABLE_WISDOM -DUSE_FFTW_MEASURE  
 endif
@@ -86,21 +83,25 @@ all: python
 python: python_cpu python_gpu
 
 python_cpu: envconfig
-	make dpstokesCPU -C $(DPSTOKES_ROOT)/python_interface
+ifeq ($(CPU), GNU)
+	make -f Makefile.GNU -C $(DPSTOKES_ROOT)/source/cpu; 
+endif
+ifeq ($(CPU), Intel)
+	make -f Makefile.Intel -C $(DPSTOKES_ROOT)/source/cpu;
+endif
 
 python_gpu: envconfig
-	make dpstokesGPU -C $(DPSTOKES_ROOT)/python_interface
+	make dpstokesGPU -C $(DPSTOKES_ROOT)/source/gpu/python_wrapper
 
 envconfig:
 	@sed -i "/DPSTOKES_ROOT=/c DPSTOKES_ROOT=$(DPSTOKES_ROOT)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 	@sed -i "/DPSTOKES_INSTALL=/c DPSTOKES_INSTALL=$(DPSTOKES_INSTALL)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 	@sed -i "/CPU=/c CPU=$(CPU)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
 
-clean:
-	make clean -C $(DPSTOKES_ROOT)/python_interface
+clean: clean_cpu clean_gpu
 
 clean_cpu:
-	make clean_cpu -C $(DPSTOKES_ROOT)/python_interface
+	rm -rf $(DPSTOKES_INSTALL)/lib*.so
 
 clean_gpu:
-	make clean_gpu -C $(DPSTOKES_ROOT)/python_interface
+	rm -rf $(DPSTOKES_ROOT)/source/gpu/python_wrapper/*.o $(DPSTOKES_INSTALL)/uammd*.so

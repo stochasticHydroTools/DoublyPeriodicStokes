@@ -33,65 +33,66 @@ class FCMJoint:
                    domType, has_torque,
                    xmax, ymax, zmin, zmax,
                    xmin=0, ymin=0, kernType = 0, optInd=0):
-        """Initialize the DPStokes module, can be called on an already initialize module to change the parameters.
-    Inputs:
-      numberParticles
-      hydrodynamicRadius
-      xmin, xmax, ymin, ymax, zmin, zmax - The simulation box limits
-      viscosity - for the Stokes problem
-      optInd - which of the candidate grids to select (see stdout). Default is 0.
-      radP - particle radius 
-      kernTypes - kernel type:
-     Default - 0 for ES 6 pt (both monopole and dipole if has_torque = true) 
-             - 1 for ES 5 pt (both monopole and dipole if has_torque = true)
-             - 2 for ES 4 pt (only monopole, dipole not supported) 
-             - 3 for ES 6 pt monopole, ES 5 pt dipole
-             - 4 for ES 6 pt monopole, ES 4 pt dipole
-             - 5 for ES 5 pt monopole, ES 4 pt dipole 
-      domType - domain type:
-            - 'TP' for triply periodic
-            - 'DP' for doubly periodic
-            - 'DPBW' for doubly periodic with bottom wall
-            - 'DPSC' for doubly periodic slit channel
-      has_torque - bool specifying if problem has torque
+      """
+      Initialize the DPStokes module, can be called on an already initialize module to change the parameters.
+        Inputs:
+          numberParticles
+          hydrodynamicRadius
+          xmin, xmax, ymin, ymax, zmin, zmax - The simulation box limits
+          viscosity - for the Stokes problem
+          optInd - which of the candidate grids to select (see stdout). Default is 0.
+          radP - particle radius 
+          kernTypes - kernel type:
+         Default - 0 for ES 6 pt (both monopole and dipole if has_torque = true) 
+                 - 1 for ES 5 pt (both monopole and dipole if has_torque = true)
+                 - 2 for ES 4 pt (only monopole, dipole not supported) 
+                 - 3 for ES 6 pt monopole, ES 5 pt dipole
+                 - 4 for ES 6 pt monopole, ES 4 pt dipole
+                 - 5 for ES 5 pt monopole, ES 4 pt dipole 
+          domType - domain type:
+                - 'TP' for triply periodic
+                - 'DP' for doubly periodic
+                - 'DPBW' for doubly periodic with bottom wall
+                - 'DPSC' for doubly periodic slit channel
+          has_torque - bool specifying if problem has torque
 
-    Stdout: 
+        Stdout: 
           - The optimal *adjusted* grid is displayed (optInd = -1)
           - Several candidate fft-friendly grids are displayed (optInd = 0,1,..)
           - The final kernel settings for each particle size are displayed
-"""
-        self.Clean()
-        self.__has_torque = has_torque
-        radP = hydrodynamicRadius*np.ones(numberParticles)
-        kernTypes = kernType*np.ones(numberParticles, dtype=int)
-        if self.__device == 'cpu':
-            self.cpusolver = FCM(radP, kernTypes, domType, has_torque)
-            self.cpusolver.SetUnitCell([xmin,xmax], [ymin,ymax], [zmin,zmax])
-            self.cpusolver.Initialize(viscosity, optInd=optInd)
-            self.__cpuCreated = True
-        elif self.__device == 'gpu':
-            Lx, Ly, hx, hy, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
-                = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, radP, kernTypes, optInd, has_torque)
-            zmax, hz, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque)
-            if domType == 'TP':
-                mode = 'periodic'
-            elif domType == 'DP':
-                mode = 'nowall'
-            elif domType == 'DPBW':
-                mode = 'bottom'
-            elif domType == 'DPSC':
-                mode = 'slit'
-            self.par = uammd.StokesParameters(viscosity=viscosity,
-                                         Lx=Lx, Ly=Ly,
-                                         zmin=zmin, zmax=zmax,
-                                         w=w[0], w_d=w_d[0],
-                                         beta=beta[0]*w[0], beta_d=beta_d[0]*w_d[0],
-                                         nx=nx, ny=ny, nz=nz, mode=mode)
-            print(self.par)
-            if not self.__gpuCreated:
-                self.gpusolver = uammd.DPStokes()
-                self.__gpuCreated = True
-            self.gpusolver.initialize(self.par, numberParticles)
+      """
+      self.Clean()
+      self.__has_torque = has_torque
+      radP = hydrodynamicRadius*np.ones(numberParticles)
+      kernTypes = kernType*np.ones(numberParticles, dtype=int)
+      if self.__device == 'cpu':
+          self.cpusolver = FCM(radP, kernTypes, domType, has_torque)
+          self.cpusolver.SetUnitCell([xmin,xmax], [ymin,ymax], [zmin,zmax])
+          self.cpusolver.Initialize(viscosity, optInd=optInd)
+          self.__cpuCreated = True
+      elif self.__device == 'gpu':
+          Lx, Ly, hx, hy, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
+              = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, radP, kernTypes, optInd, has_torque)
+          zmax, hz, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque)
+          if domType == 'TP':
+              mode = 'periodic'
+          elif domType == 'DP':
+              mode = 'nowall'
+          elif domType == 'DPBW':
+              mode = 'bottom'
+          elif domType == 'DPSC':
+              mode = 'slit'
+          self.par = uammd.StokesParameters(viscosity=viscosity,
+                                       Lx=Lx, Ly=Ly,
+                                       zmin=zmin, zmax=zmax,
+                                       w=w[0], w_d=w_d[0],
+                                       beta=beta[0]*w[0], beta_d=beta_d[0]*w_d[0],
+                                       nx=nx, ny=ny, nz=nz, mode=mode)
+          print(self.par)
+          if not self.__gpuCreated:
+              self.gpusolver = uammd.DPStokes()
+              self.__gpuCreated = True
+          self.gpusolver.initialize(self.par, numberParticles)
 
     def Clean(self):
         """Release all memory allocated by the module"""
@@ -110,23 +111,15 @@ class FCMJoint:
             self.gpusolver.setPositions(positions)
 
     def Mdot(self, forces, torques=np.array(0)):
-        """Computes the product of the Mobility tensor with the provided forces and torques. If torques are not present, they are assumed to be zero and angular displacements will not be computed"""
+        """Computes the product of the Mobility tensor with the provided forces and torques. 
+           If torques are not present, they are assumed to be zero and angular displacements will not be computed
+        """
         if self.__device == 'cpu':
-            # Donev for Sachin: Please fix your Mdot to take forces and torques separately   
-            # Ideally, the only line inside the if will be the actual call to Mdot
-            if self.__has_torque:
-                F = np.concatenate((forces, torques))
-            else:
-                F = forces
-            V = self.cpusolver.Mdot(F)
-            MF = V[0:forces.size]
-            MT = V[forces.size::]
+            MF, MT  = self.cpusolver.Mdot(forces, torques)
             return MF, MT
         elif self.__device == 'gpu':
-            __MT = np.zeros(torques.size, self.precision)
-            __MF = np.zeros(forces.size, self.precision)
+            MT = np.zeros(torques.size, self.precision)
+            MF = np.zeros(forces.size, self.precision)
             self.gpusolver.Mdot(forces=forces, torques=torques,
-                                velocities=__MF, angularVelocities=__MT)
-            return __MF, __MT
-
-
+                                velocities=MF, angularVelocities=MT)
+            return MF, MT

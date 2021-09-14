@@ -83,7 +83,8 @@ inline void DoublyPeriodicStokes::doublyPeriodicSolve_no_wall()
   memset(U_hat_r, 0, sizeof(double) * Nz * dof); 
   memset(U_hat_i, 0, sizeof(double) * Nz * dof); 
   memset(P_hat_r, 0, sizeof(double) * Nz); 
-  memset(P_hat_i, 0, sizeof(double) * Nz); 
+  memset(P_hat_i, 0, sizeof(double) * Nz);
+  unsigned int maxlev = omp_get_max_active_levels(); 
   omp_set_max_active_levels(1); 
   #pragma omp parallel for num_threads(n_threads)
   for (unsigned int i = 1; i < Nyx; ++i)
@@ -121,6 +122,7 @@ inline void DoublyPeriodicStokes::doublyPeriodicSolve_no_wall()
       p_hat_r[j] = creal(Cp[j]); p_hat_i[j] = cimag(Cp[j]);
     }
   }
+  omp_set_max_active_levels(maxlev);
   // assemble p_rhs for k = 0 if requested
   if (k0)
   {
@@ -604,6 +606,7 @@ extern "C"
         solver->corr_sol_hat[i] = (Complex*) fftw_malloc(n * 4 * sizeof(Complex));     
       }
     }
+    unsigned int maxlev = omp_get_max_active_levels();
     omp_set_max_active_levels(1); 
     #pragma omp parallel for num_threads(n_threads) 
     for (unsigned int i = 1; i < Nyx; ++i)
@@ -693,6 +696,7 @@ extern "C"
       Cv_out_i[dof * (Nz-1)] += cimag(Cv[Nz-1]) / n; 
       Cw_out_i[dof * (Nz-1)] += cimag(Cw[Nz-1]) / n; 
     }
+    omp_set_max_active_levels(maxlev); 
   }
 
   inline unsigned int at(unsigned int i, unsigned int j){return i + 8 * j;}
@@ -719,6 +723,7 @@ extern "C"
         solver->corr_sol_hat[i] = (Complex*) fftw_malloc(n * 4 * sizeof(Complex));     
       }
     }
+    unsigned int maxlev = omp_get_max_active_levels();
     omp_set_max_active_levels(1); 
     #pragma omp parallel for num_threads(n_threads)
     for (unsigned int i = 1; i < Nyx; ++i)
@@ -865,5 +870,6 @@ extern "C"
       Cv_out_i[dof * (Nz-1)] += cimag(Cv[Nz-1]) / n; 
       Cw_out_i[dof * (Nz-1)] += cimag(Cw[Nz-1]) / n; 
     }
+    omp_set_max_active_levels(maxlev); 
   }
 }

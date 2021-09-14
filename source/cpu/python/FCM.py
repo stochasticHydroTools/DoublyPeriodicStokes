@@ -314,31 +314,31 @@ class FCM(object):
     if self.has_torque:
       self.tparticles.Update(self.xP, self.tgrid)
   
-  def Mdot(self, f):
+  def Mdot(self, forces, torques=None):
     """
     Compute V = M*F
 
     Inputs:
-      f - forces/torques (fx1,fy1,fz1,fx2,fy2,fz2,...,tx1,ty1,tz1,tx2,ty2,tz2)
+      forces/torques (fx1,fy1,fz1,fx2,fy2,fz2,...), (tx1,ty1,tz1,tx2,ty2,tz2,..)
 
     Output:
-      F=[vP,omegaP] - lin/rot vel on the particles
+      vP, omegaP    - lin/rot vel on the particles
                     - (vx1,vy1,vz1,...vxn,vyn,vzn) if has_torque=False
                     - (vx1,vy1,vz1,...vxn,vyn,vzn,wx1,wy1,wz1,...,wxn,wyn,wzn) if has_torque=True
     """
-    nf, = f.shape
-    if (self.has_torque and nf != 6 * self.nP) or\
+    nf, = forces.shape; nt, = torques.shape
+    if (self.has_torque and nf + nt != 6 * self.nP) or\
        (not self.has_torque and nf != 3 * self.nP):
       raise ValueError('Dimension mismatch in particle force array')
 
 
-    self.particles.SetData(f[0:3*self.nP].copy())    
+    self.particles.SetData(forces)    
 
     # spread forces
     self.F = Spread(self.particles, self.grid); 
-    if self.has_torque:
+    if self.has_torque and torques is not None:
      
-      self.tparticles.SetData(f[3*self.nP::].copy())    
+      self.tparticles.SetData(torques)    
 
       # spread derivative of torques, compute curl and add to F 
       dxT = SpreadDx(self.tparticles, self.tgrid)
@@ -366,7 +366,7 @@ class FCM(object):
     self.grid.SetData(self.uG_r)
     Interpolate(self.particles, self.grid, self.vP)
 
-    if self.has_torque:
+    if self.has_torque and torques is not None:
 
       # interpolate derivative of linear velocities on particles
       self.tgrid.SetData(self.uG_r)
@@ -385,7 +385,7 @@ class FCM(object):
       self.omegaP[2::3] = -1/2 * (self.dxvP[1::3] - self.dyvP[0::3]) 
 
     if self.has_torque:
-      return np.concatenate((self.vP, self.omegaP))
+      return self.vP, self.omegaP
     else:
       return self.vP
 
