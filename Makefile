@@ -56,7 +56,7 @@ export SPREAD_FLAGS     = -DUSE_STACK
 #---------------------------------------------------
 # cuda compiler and bin 
 export NVCC             = nvcc
-export CUDA_ROOT        = "$(shell dirname which nvcc)"/..
+export CUDA_ROOT        = "$(shell dirname `which $(NVCC)`)"/..
 
 # uncomment for double precision - UAMMD is compiled in single by default
 # Donev for Raul: This doesn't really work at present unless you change self.precision = np.float32 in the common interface
