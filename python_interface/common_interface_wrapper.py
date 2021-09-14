@@ -1,3 +1,6 @@
+#Sachin Natesh and Raul P. Pelaez 2021.
+#The class FCMJoint in this source code joins both the GPU and CPU python interfaces into a common one. An usage example is available in dpstokes_common.py.
+#See dpstokesCPU.py or dpstokesGPU.py for usage examples for each individual interface.
 import numpy as np
 import os
 import sys
@@ -16,7 +19,7 @@ except:
   from GridAndKernelConfig import *
 
 class FCMJoint:
-
+    """A common interface for the CPU and GPU triply and doubly periodic FCM solvers."""
     def __init__(self, device = 'cpu'):
         self.__device = device
         self.__gpuCreated = False
@@ -27,10 +30,36 @@ class FCMJoint:
           self.precision = np.float32 if uammd.getPrecision() == 'single' else np.float64
 
     def Initialize(self, numberParticles, hydrodynamicRadius, viscosity,
-                   kernType, domType,
-                   has_torque,
+                   domType, has_torque,
                    xmax, ymax, zmin, zmax,
-                   xmin=0, ymin=0, optInd=0):        
+                   xmin=0, ymin=0, kernType = 0, optInd=0):
+        """Initialize the DPStokes module, can be called on an already initialize module to change the parameters.
+    Inputs:
+      numberParticles
+      hydrodynamicRadius
+      xmin, xmax, ymin, ymax, zmin, zmax - The simulation box limits
+      viscosity - for the Stokes problem
+      optInd - which of the candidate grids to select (see stdout). Default is 0.
+      radP - particle radius 
+      kernTypes - kernel type:
+     Default - 0 for ES 6 pt (both monopole and dipole if has_torque = true) 
+             - 1 for ES 5 pt (both monopole and dipole if has_torque = true)
+             - 2 for ES 4 pt (only monopole, dipole not supported) 
+             - 3 for ES 6 pt monopole, ES 5 pt dipole
+             - 4 for ES 6 pt monopole, ES 4 pt dipole
+             - 5 for ES 5 pt monopole, ES 4 pt dipole 
+      domType - domain type:
+            - 'TP' for triply periodic
+            - 'DP' for doubly periodic
+            - 'DPBW' for doubly periodic with bottom wall
+            - 'DPSC' for doubly periodic slit channel
+      has_torque - bool specifying if problem has torque
+
+    Stdout: 
+          - The optimal *adjusted* grid is displayed (optInd = -1)
+          - Several candidate fft-friendly grids are displayed (optInd = 0,1,..)
+          - The final kernel settings for each particle size are displayed
+"""
         self.Clean()
         self.__has_torque = has_torque
         radP = hydrodynamicRadius*np.ones(numberParticles)
@@ -65,6 +94,7 @@ class FCMJoint:
             self.gpusolver.initialize(self.par, numberParticles)
 
     def Clean(self):
+        """Release all memory allocated by the module"""
         if self.__device == 'cpu' and self.__cpuCreated:
             self.cpusolver.Clean()
             self.__cpuCreated = False
@@ -73,12 +103,14 @@ class FCMJoint:
             self.gpusolver.clear()
 
     def SetPositions(self, positions):
+        """Set the positions to compute the mobility matrix"""
         if self.__device == 'cpu':
             self.cpusolver.SetPositions(positions)
         elif self.__device == 'gpu':
             self.gpusolver.setPositions(positions)
 
     def Mdot(self, forces, torques=np.array(0)):
+        """Computes the product of the Mobility tensor with the provided forces and torques. If torques are not present, they are assumed to be zero and angular displacements will not be computed"""
         if self.__device == 'cpu':
             # Donev for Sachin: Please fix your Mdot to take forces and torques separately   
             # Ideally, the only line inside the if will be the actual call to Mdot

@@ -1,6 +1,6 @@
 #Raul P. Pelaez 2021. Common interface for the FCM (Triply periodic + DPStokes) CPU (Sachin) and GPU (Raul) solvers.
 #Examples on the interfaces for the CPU and GPU versions are available in dpstokesCPU.py and dpstokesGPU.py respectively.
-# TODO: documentation for the joint interface
+#import common_interface_wrapper and run help(FCMJoint) for detailed usage information.
 import numpy as np
 from common_interface_wrapper import FCMJoint
 np.random.seed(1234)
@@ -12,14 +12,16 @@ device = 'gpu'
 # domType can be 'DPBW', 'DPSC', 'DP', 'TP'
 # for bottom wall, slit channel, no wall, and triply periodic
 domType = 'DPBW'
-nP = 2048
-has_torque = True
+nP = 2048 #Number of particles
+has_torque = True #Set to True if angular displacements are needed 
 viscosity = 0.957e-3
+#Simulation domain limits
 xmin = 0.0; xmax = 128.7923
 ymin = 0.0; ymax = 128.7923
 zmin = 0.0; zmax = 9.1740639106166668
-# set the radii and kernel
+# Initialize the solver with all the parameters
 solver = FCMJoint(device)
+#Initialize can be called several times in order to change the parameters
 solver.Initialize(numberParticles=nP, hydrodynamicRadius=1.0155, kernType=0,
                   domType=domType, has_torque=has_torque,
                   xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
