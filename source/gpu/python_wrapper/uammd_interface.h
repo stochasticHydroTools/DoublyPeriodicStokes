@@ -1,7 +1,22 @@
-
+/*Raul P. Pelaez 2021.
+  An interface code between uammd_wrapper.cu and uammd_python.cpp.
+ */
 #include<string>
 #include<memory>
+
+//This is in order not to use any UAMMD related includes here.
+//Instead of using uammd::real I have to re define real here.
+#ifndef DOUBLE_PRECISION
 using real = float;
+#else
+using real = double;
+#endif
+
+//This function returns either 'single' or 'double' according to the UAMMD's compiled precision.
+namespace uammd_wrapper{
+  std::string getPrecision();
+}
+
 struct PyParameters{
   //The number of cells in each direction
   //If -1, they will be autocomputed from the tolerance if possible (DP cannot do it, FCM can)
@@ -48,7 +63,3 @@ public:
 private:
   void throwIfInvalid();
 };
-
-namespace uammd_wrapper{
-  std::string getPrecision();
-}

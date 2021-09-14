@@ -20,15 +20,15 @@ all: dpstokesCPU dpstokesGPU
 
 dpstokesGPU: $(GPU_LIBRARY_NAME)
 
-uammd_gpu.o: $(PYTHON_WRAPPER_DIR)/uammd_wrapper.cu
+uammd_gpu.o: $(PYTHON_WRAPPER_DIR)/uammd_wrapper.cu $(PYTHON_WRAPPER_DIR)/uammd_interface.h
 	$(NVCC) -w -std=c++14 -DMAXLOGLEVEL=$(VERBOSITY) $(GPU_OPTIMIZATION) $(DOUBLEPRECISION) $(GPU_INCLUDE_FLAGS) $(GPU_DEBUG) -Xcompiler "-fPIC -w" -c $< -o $@  $(LAPACKE_FLAGS)
 
-uammd_python.o: $(PYTHON_WRAPPER_DIR)/uammd_python.cpp
-	$(CXX) -std=c++14 -O3 $(CPU_DEBUG) $(CPU_OPTIMIZATION) -fPIC -w `$(PYTHON3)-config --includes` -I $(PYBIND_ROOT)/include/ -c $< -o $@
+uammd_python.o: $(PYTHON_WRAPPER_DIR)/uammd_python.cpp $(PYTHON_WRAPPER_DIR)/uammd_interface.h
+	$(CXX) -std=c++14 -O3 $(DOUBLEPRECISION) $(CPU_DEBUG) $(CPU_OPTIMIZATION) -fPIC -w `$(PYTHON3)-config --includes` -I $(PYBIND_ROOT)/include/ -c $< -o $@
 
 $(GPU_LIBRARY_NAME): uammd_gpu.o uammd_python.o
 	mkdir -p $(DPSTOKES_INSTALL)
-	$(NVCC) $(GPU_OPTIMIZATION) $(GPU_DEBUG) -w -shared $^ -o $@ -lcufft -lnvToolsExt $(LAPACKE_LIBS) $(MKL_LIBS)
+	$(NVCC) $(DOUBLEPRECISION) $(GPU_OPTIMIZATION) $(GPU_DEBUG) -w -shared $^ -o $@ -lcufft -lnvToolsExt $(LAPACKE_LIBS) $(MKL_LIBS)
 
 dpstokesCPU:
 

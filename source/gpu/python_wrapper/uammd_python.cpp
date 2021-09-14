@@ -1,9 +1,27 @@
+/* Raul P. Pelaez 2021. Doubly Periodic Stokes python bindings
+   Allows to call the DPStokes module from python to compute the product between the mobility tensor and a list forces and torques acting on a group of positions.
+   For additional info use:
+   import uammd
+   help(uammd)
+*/
+
 #include"uammd_interface.h"
 #include<pybind11/pybind11.h>
 #include<pybind11/numpy.h>
 namespace py = pybind11;
 using namespace pybind11::literals;
 
+//Python interface for the DPStokes module, see the accompanying example for more information
+/*Usage:
+  1- Call initialize with a set of parameters
+  2- Call setPositions (the format must be [x0 y0 z0 x1 y1 z1,...])
+  3- Call Mdot
+  4- Call clear to free any memory allocated by the module and ensure a gracious finish
+
+  initialize can be called again in order to change the parameters.
+  Calling initialize twice is cheaper than calling initialize, then clear, then initialize again.
+
+*/
 class DPStokesPython{
   std::shared_ptr<DPStokesGlue> dpstokes;
 public:
