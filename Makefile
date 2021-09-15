@@ -72,9 +72,12 @@ export GPU_MODULE_NAME  = uammd
 # root of uammd (change if compiled separately)
 export UAMMD_ROOT       = $(DPSTOKES_ROOT)/source/gpu/uammd
 
-# This variable can be commented if the system provides pybind11
-export PYBIND_ROOT      = $(DPSTOKES_ROOT)/python_interface/pybind11
-
+#Location of pybind11 root directory.
+#If pybind11 was installed via "pip install pybind11" this snippet will probably work out of the box.
+export PYBIND_ROOT      := $(shell pip list -v 2>&1 | grep '^pybind11[[:space:]]' | awk '{print $$3"/pybind11"}')
+#If you do not pip available you can comment the above line and uncomment the two lines below to auto download it:
+#DOWNLOAD_PYBIND11 := 1
+#export PYBIND_ROOT = $(DPSTOKES_ROOT)/source/gpu/python_wrapper/pybind11
 ################################ END USER EDIT ##################################
 
 export calling_from_parent = True
@@ -90,8 +93,13 @@ ifeq ($(CPU), Intel)
 	make -f Makefile.Intel -C $(DPSTOKES_ROOT)/source/cpu;
 endif
 
-python_gpu: envconfig
+python_gpu: envconfig $(DOWNLOAD_PYBIND11)
 	make dpstokesGPU -C $(DPSTOKES_ROOT)/source/gpu/python_wrapper
+
+$(DOWNLOAD_PYBIND11): $(PYBIND_ROOT)
+
+$(PYBIND_ROOT):
+	git clone --depth=1 https://github.com/pybind/pybind11 $@
 
 envconfig:
 	@sed -i "/DPSTOKES_ROOT=/c DPSTOKES_ROOT=$(DPSTOKES_ROOT)" $(DPSTOKES_ROOT)/python_interface/cpuconfig.sh
