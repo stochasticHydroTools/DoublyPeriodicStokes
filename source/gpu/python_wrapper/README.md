@@ -16,7 +16,8 @@ Both algorithms are grid based. Communication of the particles' forces and torqu
 In TP, the grid is regular in all directions, while in DP the grid is defined in the Chebishev basis in the third direction.  
 
 ## USAGE:
-### 0- Compile the library. It is required to pass arrays to the interface with the same precision as the library was compiled in. By default, the Makefile will compile UAMMD in single precision (corresponding to np.float32).
+### 0- Compile the library. 
+It is required to pass arrays to the interface with the same precision as the library was compiled in. By default, the Makefile will compile UAMMD in single precision (corresponding to np.float32).
 ### 1- Import the uammd python wrapper:
   ```python
   import uammd
@@ -87,7 +88,7 @@ You will need numpy for passing data to uammd:
 * Lx,Ly:     The domain size in the plane (which is always periodic). Periodic wrapping is carried out by UAMMD, so the positions' origin in the plane is irrelevant.  
 
 * zmin, zmax: The domain size in the Z direction. The meaning of this parameter changes with each mode:  
-             * In TP the domain is periodic in z with a size Lz=zmax-zmin (the origin of the particles' positions is irrelevant  
+             * In TP the domain is periodic in z with a size Lz=zmax-zmin (the origin of the particles' positions is irrelevant).  
              * In DP zmin and zmax denote the allowed range for the heights of the particles. In the DP modes particles must always be contained between zmin and zmax.  
                 *For "nowall" this range is not physical and can be considered a requirement of the implementation (and similarly for zmax in the "bottom" wall case).  
                 *For walled modes ("bottom" and "slit") zmin/zmax correspond to the locations of the bottom/top walls respectively.  
@@ -95,6 +96,6 @@ You will need numpy for passing data to uammd:
 * w, alpha, beta: Parameters of the ES kernel to spread forces  
 * w_d, alpha_d, beta_d: Parameters of the ES kernel to spread torques.  
      In both TP and DP torques are spreaded by performing the curl in fourier space, allowing to spread the torques using the same kernel as for the forces (instead of its derivative).  
-     In all cases alpha defaults to w*h*0.5, where h is the grid size (Lx/nx).  
+     In all cases alpha defaults to w*h/2, where h is the grid size (Lx/nx).  
 
 * nx, ny, nz: Number of grid cells in each direction.  

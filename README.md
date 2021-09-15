@@ -31,7 +31,7 @@ will compile and set up both the CPU and GPU python interfaces for the solver.
 
 The top level `Makefile` in DoublyPeriodicStokes contains a section where a user
 can specify the dependency library names/paths, install paths and the like.
-[Donev: Moved this here] Users should source the bash script `cpuconfig.sh` before using either 
+Users should source the bash script `cpuconfig.sh` before using either 
 the GPU or CPU Python interface in a new shell, and can edit the thread environment 
 settings therin as needed. The PYTHONPATH and LD_LIBRARY_PATH environment variables
 are appeneded to so that the modules can be used anywhere within the filesystem.
@@ -42,7 +42,7 @@ If you want to use the Intel compiler for the CPU code, prefix the call to make 
 CPU=Intel make
 ``` 
 Note, even if using the Intel compiler, you must load the module for gcc-6.4.0 or higher, 
-as the compiler relies on GNU headers. Also note that by default with Intel compilers the (MKL library)[https://en.wikipedia.org/wiki/Math_Kernel_Library] is used to provide LAPACK/BLAS functionality.
+as the compiler relies on GNU headers. Also note that by default with Intel compilers the [MKL library](https://en.wikipedia.org/wiki/Math_Kernel_Library) is used to provide LAPACK/BLAS functionality.
  
 You can compile both CPU and GPU libraries in debug node through
 ```shell

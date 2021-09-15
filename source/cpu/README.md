@@ -2,6 +2,9 @@
 A spectral immersed boundary method for particle suspensions in Stokes flow on doubly and triply periodic domains.
 
 ### Build Dependencies ###
+The instructions here are for using cmake3 for the build process. This is not required, the Makefiles provided here work with GNU make. However, these Makefiles are meant to be called from the Makefile of the python interface common to the CPU and GPU implementations.
+
+
 You will need to `apt install` at least the following dependencies:
 
 * build-essential
