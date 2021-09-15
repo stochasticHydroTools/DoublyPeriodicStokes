@@ -69,9 +69,9 @@ The file `python_interface/dpstokes_common.py` is an example of using the joint 
 
 ### GPU Python interface
 
-The GPU interface requires [pybind11](https://github.com/pybind/pybind11) to compile, [Donev: Raul, aren't we changing this?] which is included as a submodule and will be automatically downloaded if this repo is cloned recursively (see "About this repo" above).  
-In order to use it you must compile the python wrappers using make inside python_interface.  
-A file called uammd.*.so will be created and then "import uammd" can be used inside python. 
+The GPU interface requires [pybind11](https://github.com/pybind/pybind11) to compile, the default Makefile expects pip to be available and pybind11 being installed via "pip install pybind11". There is an option in the Makefile if neither pip nor pybind11 are available in the system.  
+In order to use it you must compile the python wrappers using make in the root directory.  
+A file called uammd.*.so will be created and then "import uammd" can be used inside python. The module name can be changed in the Makefile.
 See `python_interface/dpstokesGPU.py` for a usage example. Once compiled and imported you can use "help(uammd)" in python for additional usage information.  
 
 ### CPU Python interface
@@ -79,3 +79,4 @@ See `python_interface/dpstokesGPU.py` for a usage example. Once compiled and imp
 See the `source/cpu/README.md` for details. Note, the build instructions contained therein are for using cmake3 as the build system. 
 The section can be ignored, or followed analogously through the provided top level Makefile. The file `python_interface/dpstokesCPU.py` contains an example. 
 OpenMP is used for parallelization and users should control the number of threads via the bash script `cpuconfig.sh`.
+

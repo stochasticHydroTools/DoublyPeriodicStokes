@@ -10,12 +10,12 @@ if "FCM_CPUCONFIG_LAUNCHED" not in os.environ:
 try:
   import uammd # GPU solver
 except:
-  print('Could not load uammd GPU Python interface')
+  print('Could not load uammd GPU Python interface: Have you ran make in the root directory?')
 
 try:
   from FCM import *
 except:
-  print('Could not load CPU Python interface')
+  print('Could not load CPU Python interface: Have you ran make in the root directory?')
   from GridAndKernelConfig import *
 
 class FCMJoint:
