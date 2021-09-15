@@ -1,3 +1,9 @@
+ifndef calling_from_parent
+  errormsg:=$(shell printf '\033[31m\033[1mThis Makefile must be called by the Makefile in the root directory. Do not try to run it directly\033[0m\n')
+  $(error $(errormsg))
+endif
+
+
 CURDIR          = $(shell pwd)
 CXX             = icpc
 
