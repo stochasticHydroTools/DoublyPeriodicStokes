@@ -39,11 +39,11 @@ You will need numpy for passing data to uammd:
                              alpha=alpha, alpha_d=alpha_d,
                              beta=beta, beta_d=beta_d,
                              nx=nx, ny=ny, nz=nz, mode=mode)
-							 ```
+```
 ### 4- Initialize DPStokes with the parameters and the number of particles:  
 ```python 
  dpstokes.initialize(par, numberParticles)
- ```
+```
  If some parameters need to change, simply call initialize again with the new ones.  
  Mind you, initialization is in general a really slow operation.  
 ### 5- Set the positions to construct the mobility matrix with:  
@@ -70,7 +70,7 @@ You will need numpy for passing data to uammd:
 ### 7- Clean up any memory allocated by the module, which will remain in an unusable state until initialization is called again  
 ```python 
  dpstokes.clear()
-	```
+```
 
 
 
