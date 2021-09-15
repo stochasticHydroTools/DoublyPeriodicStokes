@@ -76,5 +76,6 @@ See `python_interface/dpstokesGPU.py` for a usage example. Once compiled and imp
 
 ### CPU Python interface
 
-See the `source/cpu/README.md` for details. The file `python_interface/dpstokesCPU.py` contains an example. OpenMP is used for parallelization and users should control the number of threads via the bash script `cpuconfig.sh`.
-.
+See the `source/cpu/README.md` for details. Note, the build instructions contained therein are for using cmake3 as the build system. 
+The section can be ignored, or followed analogously through the provided top level Makefile. The file `python_interface/dpstokesCPU.py` contains an example. 
+OpenMP is used for parallelization and users should control the number of threads via the bash script `cpuconfig.sh`.

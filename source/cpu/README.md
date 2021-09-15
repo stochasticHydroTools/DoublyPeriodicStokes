@@ -87,14 +87,15 @@ sed -i "/num_threads/c num_threads=${num_threads}" /path/to/DoublyPeriodicStokes
 All OpenMP parallel loops throughout the library will use this number of 
 threads, and nested parallelism is disabled. 
 
-A convenience script `cpuconfig.sh` is available in the `examples` folder after installation. 
+A convenience script `cpuconfig.sh` is available in the `examples` folder after installation.
+Note, we also provide it in `DoublyPeriodic/python_interface`. 
 Executing the following will accomplish the above snippets, and the file can be 
 edited as needed. It must be sourced every time a new shell is used for a run.
 ```shell
 $ source cpuconfig.sh
 ```
 For thread pinning, one must use different settings depending on how the library was built. These
-can be added to config.sh. For example, for a 10 core single socket machine with GNU compilation
+can be added to `cpuconfig.sh`. For example, for a 10 core single socket machine with GNU compilation
 ```shell
 export OMP_PLACES="{0}:10:1"
 export OMP_PROC_BIND=true
@@ -105,6 +106,8 @@ source /opt/intel/mkl/bin/mklvars.sh intel64
 export MKL_THREADING_LAYER=sequential
 export KMP_AFFINITY="verbose,proclist=[0,1,2,3,4,5,6,7,8,9],explicit"
 ```
+We find that thread pinning must be tested to achieve optimal performance on a given machine. 
+In some cases, no pinning is more optimal. 
 
 #### FFTW Settings ####
 Each solver works on Fourier or Fourier-Chebyshev coefficients of
@@ -150,7 +153,7 @@ NOTE: Generated wisdom is dependent on
 ```
 1) The number of threads set in config.py
 2) The OpenMP environment settings
-    - Eg) OMP_NESTED, OMP_PROC_BIND, OMP_PLACES
+    - Eg) OMP_PROC_BIND, OMP_PLACES
 ```
 Trying to use wisdom generated with a different number of threads, or 
 even the correct number of threads but a different OpenMP env config
@@ -196,8 +199,10 @@ minX = 0.0; maxX = 128.7923
 minY = 0.0; maxY = 128.7923
 minZ = 0.0; maxZ = 20.0
 xP = np.reshape(pos, (3 * nP,)).copy()
-F = np.concatenate((data[:,0],data[:,1]))
+forces = data[:,0].copy()
+torques = data[:,1].copy()
 radP = 1.0155 * np.ones(nP, dtype = np.double)
+# w=6 ES kernel for monopole and dipole
 kernTypes = np.zeros(nP, dtype = np.int)
 
 problem = FCM(radP, kernTypes, domType, has_torque)
@@ -205,13 +210,13 @@ problem.SetUnitCell([minX,maxX], [minY,maxY], [minZ,maxZ])
 problem.Initialize(eta, 0)
 problem.SetPositions(xP)
 
-V = problem.Mdot(F)
+vP, omegaP = problem.Mdot(forces, torques)
 
 # dummy update
-xP += 0.1 * np.abs(V[0:3 * nP])
+xP += 0.1 * np.abs(vP)
 problem.SetPositions(xP)
 
-V = problem.Mdot(F)
+vP, omegaP = problem.Mdot(forces, torques)
 
 problem.Clean()
 ```
@@ -219,12 +224,10 @@ An example workflow for using this script in Bash from a newly created `run`
 directory is provided below:
 ```shell
 cd && mkdir run && cd run
-cp /path/to/DoublyPeriodicStokes/source/cpu/examples/cpuconfig.sh . 
-cp /path/to/DoublyPeriodicStokes/source/cpu/examples/fcm_example.py .
-cp /path/to/DoublyPeriodicStokes/source/cpu/examples/Test_Data_For_Rollers.tgz .
-tar xvzf Test_Data_For_Rollers.tgz
+cp /path/to/DoublyPeriodicStokes/python_interface/cpuconfig.sh . 
+cp /path/to/DoublyPeriodicStokes/python_interface/dpstokesCPU.py .
 source cpuconfig.sh
-python3 fcm_example.py
+python3 dpstokesCPU.py
 ```
 
 ### Organization ###
