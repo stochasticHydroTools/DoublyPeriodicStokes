@@ -69,7 +69,7 @@ export VERBOSITY        = 5
 # name of gpu module (changing this will require to change the common_wrapper*py code accordingly)
 export GPU_MODULE_NAME  = uammd
 
-# root of uammd (change if compiled separately)
+# root of uammd (uammd should be automatically downloaded, if you want to use a local version, change this variable accordingly). Note that UAMMD does not have to be compiled on its own (it is a header only library).
 export UAMMD_ROOT       = $(DPSTOKES_ROOT)/source/gpu/uammd
 
 #Location of pybind11 root directory.
