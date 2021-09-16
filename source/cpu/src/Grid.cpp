@@ -13,7 +13,7 @@ Grid::Grid() : fG(0), fG_unwrap(0), xG(0), yG(0), zG(0), firstn(0),
                Nyeff(0), Nzeff(0), has_locator(false), 
                dof(0), BCs(0), zG_wts(0), has_periodicity(false), 
                has_bc(false), unifZ(false), n_threads(1),
-               minX(0), minY(0), minZ(0)
+               minX(0), minY(0), minZ(0), zG_ext(0), zG_ext_wts(0)
 {}
 
 void Grid::setup()
@@ -194,6 +194,8 @@ void Grid::cleanup()
     if (fG) {fftw_free(fG); fG = 0;}
     if (zG) {fftw_free(zG); zG = 0;}
     if (zG_wts) {fftw_free(zG_wts); zG_wts = 0;}
+    if (zG_ext) {fftw_free(zG_ext); zG_ext = 0;}
+    if (zG_ext_wts) {fftw_free(zG_ext_wts); zG_ext_wts = 0;}
   }
   else {exitErr("Could not clean up grid.");}
 }

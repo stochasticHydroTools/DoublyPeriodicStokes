@@ -25,6 +25,7 @@
  *  zoffset - offset index in the z direction for each particle
  *  pt_wts - the kernel weights for each particle (only populated if grid.unifZ = false)
  *  n_threads - number of threads to use for any omp loop (default to 1, set externally with c wrapper)
+ *  indl, indr - indices of z grid pt within alpha below and above each particle (for non-uniform z) 
 */
 
 /* first  define some types to minimize work during initialization. eg. for es, we need to compute
@@ -60,7 +61,7 @@ struct ParticleList
   double *xunwrap, *yunwrap, *zunwrap, *pt_wts;
   unsigned int *zoffset;
   double *radP, *betafP, *normfP, *alphafP, *cwfP, *threshP;
-  unsigned short *wfP, *wfxP, *wfyP, *wfzP;
+  unsigned short *wfP, *wfxP, *wfyP, *wfzP, *indl, *indr;
   unsigned short wfxP_max, wfyP_max, wfzP_max;
   unsigned int nP, dof, ext_down, ext_up;
   ESParticleSet unique_monopoles;

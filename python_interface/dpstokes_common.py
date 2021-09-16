@@ -25,7 +25,7 @@ solver = FCMJoint(device)
 solver.Initialize(numberParticles=nP, hydrodynamicRadius=1.0155, kernType=0,
                   domType=domType, has_torque=has_torque,
                   xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
-                  viscosity=viscosity, optInd=0)
+                  viscosity=viscosity, optInd=0, ref=False)
 
 # now define some random positions
 xP = np.zeros(3 * nP, dtype = np.double) # Arbitrary xP inside the Z domain

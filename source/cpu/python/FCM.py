@@ -146,7 +146,7 @@ class FCM(object):
     print('unit cell := [%.4f,%.4f]x[%.4f,%.4f]x[%.4f,%.4f]\n' % (X[0], X[1], Y[0], Y[1], Z[0], Z[1])) 
 
 
-  def Initialize(self, viscosity, optInd, fac=1.5):
+  def Initialize(self, viscosity, optInd, fac=1.5, ref=False):
     """
     Initialize the grids, precompute the solver, and plan FFTs
     
@@ -154,6 +154,7 @@ class FCM(object):
       viscosity - for the Stokes problem
       optInd - which of the candidate grids to select (see stdout)
       fac - buffer factor for DP problems (default/recommended is 1.5)
+      ref - doubly resolved grid (for reference computations, default is False)
     Stdout: 
           - The optimal *adjusted* grid is displayed (optInd = -1)
           - Several candidate fft-friendly grids are displayed (optInd = 0,1,..) 
@@ -185,10 +186,10 @@ class FCM(object):
     # select x-y grid for the particles (if optInd=-1, optimal adjusted grid automatically chosen)
     self.Lx, self.Ly, self.hx, self.hy, self.Nx, self.Ny, self.wm,\
     self.wd, self.cbetam, self.cbetad, self.betamP, self.betadP\
-      = configure_grid_and_kernels_xy(self.Lx, self.Ly, self.radP, self.kernTypes, optInd, self.has_torque)
+      = configure_grid_and_kernels_xy(self.Lx, self.Ly, self.radP, self.kernTypes, optInd, self.has_torque, ref)
     # set the z grid 
     self.Lz, self.hz, self.Nz, self.z0\
-      = configure_grid_and_kernels_z(self.minZ, self.maxZ, self.hx, self.wm, self.wd, self.domType, self.has_torque, fac)
+      = configure_grid_and_kernels_z(self.minZ, self.maxZ, self.hx, self.wm, self.wd, self.domType, self.has_torque, fac, ref)
     # chebyshev grid and weights for z
     self.zpts, self.zwts = clencurt(self.Nz, 0, self.Lz)
     ####### print final settings #######
@@ -326,17 +327,16 @@ class FCM(object):
                     - (vx1,vy1,vz1,...vxn,vyn,vzn) if has_torque=False
                     - (vx1,vy1,vz1,...vxn,vyn,vzn,wx1,wy1,wz1,...,wxn,wyn,wzn) if has_torque=True
     """
-    nf, = forces.shape; nt, = torques.shape
+    nf = forces.size; nt = torques.size
     if (self.has_torque and nf + nt != 6 * self.nP) or\
        (not self.has_torque and nf != 3 * self.nP):
       raise ValueError('Dimension mismatch in particle force array')
-
 
     self.particles.SetData(forces)    
 
     # spread forces
     self.F = Spread(self.particles, self.grid); 
-    if self.has_torque and torques is not None:
+    if self.has_torque:
      
       self.tparticles.SetData(torques)    
 
@@ -354,7 +354,6 @@ class FCM(object):
     self.transformer.Ftransform(self.F)
     self.F_hat_r = self.transformer.out_real; 
     self.F_hat_i = self.transformer.out_imag; 
-
     # solve pde 
     self.U_hat_r, self.U_hat_i, self.P_hat_r, self.P_hat_i = self.solver.Solve(self.F_hat_r, self.F_hat_i)
   
@@ -366,7 +365,7 @@ class FCM(object):
     self.grid.SetData(self.uG_r)
     Interpolate(self.particles, self.grid, self.vP)
 
-    if self.has_torque and torques is not None:
+    if self.has_torque:
 
       # interpolate derivative of linear velocities on particles
       self.tgrid.SetData(self.uG_r)
@@ -384,10 +383,7 @@ class FCM(object):
       self.omegaP[1::3] = -1/2 * (self.dzvP[0::3] - self.dxvP[2::3]) 
       self.omegaP[2::3] = -1/2 * (self.dxvP[1::3] - self.dyvP[0::3]) 
 
-    if self.has_torque:
-      return self.vP, self.omegaP
-    else:
-      return self.vP
+    return self.vP, self.omegaP
 
   def Clean(self):
     """

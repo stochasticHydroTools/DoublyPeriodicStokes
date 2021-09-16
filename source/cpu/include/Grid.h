@@ -18,12 +18,15 @@
                             grid.nextn[i1] = i2 is the index of the next particle in the column, and so on.
  * BCs                    - enum for boundary conditions for each dof at the ends of each axis (dof x 6)
  * n_threads              - number of threads to use for any omp loop (default to 1, set externally with c wrapper)
+ * zG_wts                 - weights for z grid
+ * zG_ext, zG_ext_wts     - points and weights for extended z grid
 */ 
 
 
 struct Grid
 {
   double *fG, *fG_unwrap, *xG, *yG, *zG, *zG_wts; 
+  double *zG_ext, *zG_ext_wts;
   double minX, minY, minZ;
   int *firstn, *nextn;
   unsigned int* number;

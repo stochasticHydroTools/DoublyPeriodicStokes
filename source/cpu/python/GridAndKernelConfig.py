@@ -359,7 +359,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
          Ny.astype(np.int), wm, wd, cbeta_m,\
          cbeta_d, betafP, betadP
 
-def configure_grid_and_kernels_z(minZ, maxZ, h, wm, wd, domType, has_torque, fac=1.5):
+def configure_grid_and_kernels_z(minZ, maxZ, h, wm, wd, domType, has_torque, fac=1.5, ref=False):
 
   """
   Function to set up the z-grid given x-y box length L, z extents, and particle radius Rh
@@ -400,6 +400,10 @@ def configure_grid_and_kernels_z(minZ, maxZ, h, wm, wd, domType, has_torque, fac
     msep_up = fac * np.max(wm) * h / 2
   elif domType == 'DP':
     msep_down = msep_up = fac * np.max(wm) * h / 2
+
+  if ref:
+    msep_down *= 2.0
+    msep_up *= 2.0
 
   # left/right endpts for z grid and scaling factors for [a,b] -> [-1,1] (if using cheb grid)
   a = minZ - msep_down 
