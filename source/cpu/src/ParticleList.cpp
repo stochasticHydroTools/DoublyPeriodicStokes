@@ -702,17 +702,6 @@ void ParticleList::update(double* xP_new, Grid& grid)
                 // if the particle has moved
                 if (col_new != col)
                 {
-                  // index of next pt in column
-                  int nnext = grid.nextn[n];
-                  // update add particle n to col_new of search struct
-                  grid.nextn[n] = grid.firstn[col_new];
-                  grid.firstn[col_new] = n;
-                  grid.number[col_new] += 1;
-                  // delete particle n from col of search struct
-                  if (nprev == -1){grid.firstn[col] = nnext;}
-                  else {grid.nextn[nprev] = nnext;}
-                  grid.number[col] -= 1;
-                  n = nnext;
                   // update kernel coords
                   for (unsigned int j = 0; j < wx; ++j)
                   {
@@ -730,6 +719,17 @@ void ParticleList::update(double* xP_new, Grid& grid)
                       yunwrap[j + n * wfyP_max] = threshP[n] ;
                     }
                   }
+                  // index of next pt in column
+                  int nnext = grid.nextn[n];
+                  // add particle n to col_new of search struct
+                  grid.nextn[n] = grid.firstn[col_new];
+                  grid.firstn[col_new] = n;
+                  grid.number[col_new] += 1;
+                  // delete particle n from col of search struct
+                  if (nprev == -1){grid.firstn[col] = nnext;}
+                  else {grid.nextn[nprev] = nnext;}
+                  grid.number[col] -= 1;
+                  n = nnext;
                 }
                 // if the particle hasn't moved
                 else

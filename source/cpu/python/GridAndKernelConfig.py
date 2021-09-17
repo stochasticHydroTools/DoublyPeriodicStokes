@@ -154,16 +154,16 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
       betafP = betafP_opt
       Lx = Lxopt; Ly = Lyopt; Nx = Nxopt; Ny = Nyopt
       hx = hopt; hy = hopt;
-       
-    # double the number of points under kernel for reference computation
-    if ref:
-      hx /= 2; Nx *= 2
-      hy /= 2; Ny *= 2
 
     # set dimensionless radii
     for iP in range(0,nP):
       cbeta_m[iP] = pRs[iP] / (wm[iP] * hx) 
     cbeta_d = 0
+       
+    # double the number of points under kernel for reference computation
+    if ref:
+      hx /= 2; Nx *= 2
+      hy /= 2; Ny *= 2
  
     ################# printout kernel settings ############ 
     print('\nFinal kernel settings:\n')
@@ -332,15 +332,16 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
       Lx = Lxopt; Ly = Lyopt; Nx = Nxopt; Ny = Nyopt
       hx = hopt; hy = hopt;
 
+    # set dimensionless radii 
+    for iP in range(0,nP):
+      cbeta_m[iP] = pRs[iP] / (wm[iP] * hx) 
+      cbeta_d[iP] = pRs[iP] / (wd[iP] * hx) 
+
     # double the number of points under kernel for reference computation
     if ref:
       hx /= 2; Nx *= 2
       hy /= 2; Ny *= 2
 
-    # set dimensionless radii 
-    for iP in range(0,nP):
-      cbeta_m[iP] = pRs[iP] / (wm[iP] * hx) 
-      cbeta_d[iP] = pRs[iP] / (wd[iP] * hx) 
    
     ################# printout kernel settings ############ 
     print('\nFinal kernel settings:\n')
