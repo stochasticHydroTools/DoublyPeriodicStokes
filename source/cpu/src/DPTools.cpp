@@ -869,6 +869,9 @@ extern "C"
       Cu_out_i[dof * (Nz-1)] += cimag(Cu[Nz-1]) / n; 
       Cv_out_i[dof * (Nz-1)] += cimag(Cv[Nz-1]) / n; 
       Cw_out_i[dof * (Nz-1)] += cimag(Cw[Nz-1]) / n; 
+      fftw_free(piv);
+      fftw_free(coeffA);
+      fftw_free(x);
     }
     omp_set_max_active_levels(maxlev); 
   }

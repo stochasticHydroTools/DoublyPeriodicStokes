@@ -309,11 +309,11 @@ class FCM(object):
     else: 
       if xP.shape[0] != 3 * self.nP:
         raise ValueError('Positions array has incorrect length')
-    self.xP = xP
-    # use existing search structures to update positions
-    self.particles.Update(self.xP, self.grid)
-    if self.has_torque:
-      self.tparticles.Update(self.xP, self.tgrid)
+      self.xP = xP
+      # use existing search structures to update positions
+      self.particles.Update(self.xP, self.grid)
+      if self.has_torque:
+        self.tparticles.Update(self.xP, self.tgrid)
   
   def Mdot(self, forces, torques=None):
     """
@@ -404,5 +404,3 @@ class FCM(object):
     self.tgrid = None
     self.transformer = None
     self.solver = None 
-
-
