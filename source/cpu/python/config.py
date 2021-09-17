@@ -1,1 +1,1 @@
-num_threads=6
+num_threads=10
