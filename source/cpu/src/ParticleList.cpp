@@ -29,7 +29,7 @@ ParticleList::ParticleList(const double* _xP, const double* _fP, const double* _
                          const bool isCbeta) :
   nP(_nP), dof(_dof), normalized(false), unique_monopoles(ESParticleSet(20,esparticle_hash)), 
   xunwrap(0), yunwrap(0), zunwrap(0), zoffset(0), pt_wts(0), n_threads(1), rad_unknown(false), 
-  isDipole(_isDipole), isCbeta(isCbeta)
+  isDipole(_isDipole), isCbeta(isCbeta), indl(0), indr(0)
 {
   xP = (double*) fftw_malloc(nP * 3 * sizeof(double));
   fP = (double*) fftw_malloc(nP * dof * sizeof(double));
@@ -67,7 +67,7 @@ ParticleList::ParticleList(const double* _xP, const double* _fP, const double* _
                            const bool _isDipole) :
   nP(_nP), dof(_dof), normalized(false), unique_monopoles(ESParticleSet(0,esparticle_hash)), 
   xunwrap(0), yunwrap(0), zunwrap(0), zoffset(0), pt_wts(0), n_threads(1), rad_unknown(true), 
-  isDipole(_isDipole), isCbeta(false)
+  isDipole(_isDipole), isCbeta(false), indl(0), indr(0)
 {
   xP = (double*) fftw_malloc(nP * 3 * sizeof(double));
   fP = (double*) fftw_malloc(nP * dof * sizeof(double));
@@ -418,8 +418,8 @@ void ParticleList::locateOnGridNonUnifZ(Grid& grid)
   
   // define extended z grid
   ext_down = 0; ext_up = 0;
-  if (this->indl) this->indl = (unsigned short*) fftw_malloc(nP * sizeof(unsigned short));
-  if (this->indr) this->indr = (unsigned short*) fftw_malloc(nP * sizeof(unsigned short));
+  if (not this->indl) this->indl = (unsigned short*) fftw_malloc(nP * sizeof(unsigned short));
+  if (not this->indr) this->indr = (unsigned short*) fftw_malloc(nP * sizeof(unsigned short));
   unsigned int i = 1;
   while (grid.zG[0] - grid.zG[i] <= threshP_max) {ext_up += 1; i += 1;} 
   i = grid.Nz - 2;
@@ -453,12 +453,12 @@ void ParticleList::locateOnGridNonUnifZ(Grid& grid)
   for (unsigned int i = 0; i < nP; ++i)
   {
     // find index of z grid pt w/i alpha below 
-    auto high = std::lower_bound(&grid.zG_ext[0], &grid.zG_ext[0] + grid.Nzeff, \
+    auto high = std::lower_bound(&(grid.zG_ext[0]), &(grid.zG_ext[0]) + grid.Nzeff, \
                                  xP[2 + 3 * i] - threshP[i], std::greater<double>());
-    auto low = std::lower_bound(&grid.zG_ext[0], &grid.zG_ext[0] + grid.Nzeff, \
+    auto low = std::lower_bound(&(grid.zG_ext[0]), &(grid.zG_ext[0]) + grid.Nzeff, \
                                 xP[2 + 3 * i] + threshP[i], std::greater<double>());
-    indl[i] = low - &grid.zG_ext[0];  
-    indr[i] = high - &grid.zG_ext[0];
+    indl[i] = low - &(grid.zG_ext[0]);  
+    indr[i] = high - &(grid.zG_ext[0]);
     if (indr[i] == grid.Nzeff) {indr[i] -= 1;}
     else if (xP[2 + 3 * i] - threshP[i] > grid.zG_ext[indr[i]]) {indr[i] -= 1;}
     wfzP[i] = indr[i] - indl[i] + 1; 
@@ -624,12 +624,12 @@ void ParticleList::update(double* xP_new, Grid& grid)
     else // recompute wz max for non-uniform z
     {
       // find index of z grid pt w/i alpha below 
-      auto high = std::lower_bound(&grid.zG_ext[0], &grid.zG_ext[0] + grid.Nzeff, \
+      auto high = std::lower_bound(&(grid.zG_ext[0]), &(grid.zG_ext[0]) + grid.Nzeff, \
                                    xP[2 + 3 * i] - threshP[i], std::greater<double>());
-      auto low = std::lower_bound(&grid.zG_ext[0], &grid.zG_ext[0] + grid.Nzeff, \
+      auto low = std::lower_bound(&(grid.zG_ext[0]), &(grid.zG_ext[0]) + grid.Nzeff, \
                                   xP[2 + 3 * i] + threshP[i], std::greater<double>());
-      indl[i] = low - &grid.zG_ext[0];  
-      indr[i] = high - &grid.zG_ext[0];
+      indl[i] = low - &(grid.zG_ext[0]);  
+      indr[i] = high - &(grid.zG_ext[0]);
       if (indr[i] == grid.Nzeff) {indr[i] -= 1;}
       else if (xP[2 + 3 * i] - threshP[i] > grid.zG_ext[indr[i]]) {indr[i] -= 1;}
       wfzP[i] = indr[i] - indl[i] + 1; 

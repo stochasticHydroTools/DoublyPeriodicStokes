@@ -30,7 +30,8 @@ def mobility_matrix(xPs, solver):
   
   for iC in range(0, nConfig):
     print("config #", iC)
-    solver.SetPositions(xPs[iC,:].copy())
+    xP = xPs[iC,:].copy()
+    solver.SetPositions(xP)
     if has_torque:
       for j in range(0, 6 * nP):
         forces = F[0:3*nP,j].copy(); torques = F[3*nP::,j].copy();
