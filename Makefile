@@ -74,10 +74,10 @@ export UAMMD_ROOT       = $(DPSTOKES_ROOT)/source/gpu/uammd
 
 #Location of pybind11 root directory.
 #If pybind11 was installed via "pip install pybind11" this snippet will probably work out of the box.
-export PYBIND_ROOT      := $(shell pip list -v 2>&1 | grep '^pybind11[[:space:]]' | awk '{print $$3"/pybind11"}')
+#export PYBIND_ROOT      := $(shell pip list -v 2>&1 | grep '^pybind11[[:space:]]' | awk '{print $$3"/pybind11"}')
 #If you do not pip available you can comment the above line and uncomment the two lines below to auto download it:
-#DOWNLOAD_PYBIND11 := 1
-#export PYBIND_ROOT = $(DPSTOKES_ROOT)/source/gpu/python_wrapper/pybind11
+DOWNLOAD_PYBIND11 := 1
+export PYBIND_ROOT = $(DPSTOKES_ROOT)/source/gpu/python_wrapper/pybind11
 ################################ END USER EDIT ##################################
 
 export calling_from_parent = True
