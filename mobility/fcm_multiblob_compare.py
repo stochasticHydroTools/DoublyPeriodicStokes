@@ -49,6 +49,8 @@ solver.Initialize(numberParticles=nP, hydrodynamicRadius=radP, kernType=kernType
 solver.SetPositions(xP)
 mob, mobt = solver.Mdot(F, T)
 
+solver.Clean()
+
 print(mob)
 
 if nBlobs == 1:
@@ -56,7 +58,7 @@ if nBlobs == 1:
   Mtr_x_T = data[:,3]
   Mrt_x_F = data[:,4]
   Mrr_x_T = data[:,5]
-  
+
   if has_torque:
     mob_multiblob = Mtt_x_f + Mtr_x_T
     mobt_multiblob = Mrt_x_F + Mrr_x_T
