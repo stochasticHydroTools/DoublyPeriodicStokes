@@ -75,7 +75,7 @@ class FCMJoint:
       elif self.device == 'gpu':
           Lx, Ly, hx, hy, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
               = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, self.radP, self.kernTypes, optInd, has_torque, ref)
-          zmax, hz, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque, ref)
+          zmax, hz, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, has_torque, 1.5, ref)
           if domType == 'TP':
               mode = 'periodic'
           elif domType == 'DP':
