@@ -96,7 +96,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
         err = errmw5
         errPoly = errPolyw5
       elif kernTypes[iP] == 2:  
-        err = errwm4
+        err = errmw4
         errPoly = errPolyw4
 
       # compute beta and error for optimal grid spacing (not necessarily fft friendly)

@@ -327,9 +327,12 @@ class FCM(object):
                     - (vx1,vy1,vz1,...vxn,vyn,vzn) if has_torque=False
                     - (vx1,vy1,vz1,...vxn,vyn,vzn,wx1,wy1,wz1,...,wxn,wyn,wzn) if has_torque=True
     """
-    nf = forces.size; nt = torques.size
-    if (self.has_torque and nf + nt != 6 * self.nP) or\
-       (not self.has_torque and nf != 3 * self.nP):
+    nf = forces.size; 
+    if self.has_torque:
+      nt = torques.size
+      if nf + nt != 6 * self.nP:
+        raise ValueError('Dimension mismatch in particle force array')
+    elif nf != 3 * self.nP:
       raise ValueError('Dimension mismatch in particle force array')
 
     self.particles.SetData(forces)    
