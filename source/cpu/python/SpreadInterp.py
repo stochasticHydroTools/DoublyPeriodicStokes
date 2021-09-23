@@ -166,7 +166,6 @@ def InterpolateDz(s, g, dzuP):
   s.ZeroData()
   Ghostify(g.grid, s.particles)
   libSpreadInterpDerivZ.Interpolate(s.particles, g.grid)
-  dzuP = np.zeros((s.nP * s.dof,))
   s.CopyData(dzuP)
 
 def ResetDOF(s, g, dof):
