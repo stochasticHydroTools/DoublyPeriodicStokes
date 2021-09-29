@@ -7,8 +7,8 @@ import sys
 np.random.seed(0)
 
 # Device to run the code, can be either 'cpu' or 'gpu'
-#device = 'cpu'
-device = sys.argv[1]
+device = 'cpu'
+#device = sys.argv[1]
 
 # first set the domain type, extents, viscosity and number of paticles 
 # domType can be 'DPBW', 'DPSC', 'DP', 'TP'
