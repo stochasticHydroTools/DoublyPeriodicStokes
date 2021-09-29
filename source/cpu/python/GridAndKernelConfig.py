@@ -67,7 +67,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     # take the minimum grid spacing 
     h = np.min(h)
     # set torque vars to 0
-    wd = 0; betadP = 0;
+    wd = [0]; betadP = [0];
     # real N given Lx and h 
     Nx_real = Lx / h;
     # search up to 10 larger fft friendly Ns (small prime factors - 2,3,5,7)
@@ -360,7 +360,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
          Ny.astype(np.int), wm, wd, cbeta_m,\
          cbeta_d, betafP, betadP
 
-def configure_grid_and_kernels_z(minZ, maxZ, h, wm, wd, domType, has_torque, fac=1.5, ref=False):
+def configure_grid_and_kernels_z(minZ, maxZ, h, wm, wd, domType, fac=1.5, ref=False):
 
   """
   Function to set up the z-grid given x-y box length L, z extents, and particle radius Rh
@@ -373,7 +373,6 @@ def configure_grid_and_kernels_z(minZ, maxZ, h, wm, wd, domType, has_torque, fac
           'DP' - doubly periodic
           'DPBW' - doubly periodic with bottom wall
           'DPSC - doubly periodic slit channel
-         has_torque - if True, problem involves torque
          fac - safety factor for open boundary placement (see msep*, default=1.5) 
  
   Output:  Lz - length in z (based on domType)

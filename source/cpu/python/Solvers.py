@@ -9,6 +9,8 @@ from scipy.interpolate import interp1d, PchipInterpolator
 libLinSolve = ctypes.CDLL('liblinSolve.so')
 # get doubly periodic tools, including main solver struct
 libDPTools = ctypes.CDLL('libdpTools.so')
+# get tp solver
+libTPTools = ctypes.CDLL('libtpTools.so')
 # see end of file for lib function signatures
 
 class Stokes(object):
@@ -104,7 +106,7 @@ class Stokes(object):
     by taking the curl of the linear velocity
     """
     if self.solverType == 'TP':
-      self.U_hat_r, self.U_hat_i\
+      self.U_hat_r, self.U_hat_i, self.P_hat_r, self.P_hat_i\
         = TriplyPeriodicStokes(fG_hat_r, fG_hat_i, self.eta, self.Ksq,\
                                self.Dx, self.Dy, self.Dz, self.Ntot)
     elif self.solverType == 'DP':
@@ -129,12 +131,11 @@ class Stokes(object):
                                             self.Nx, self.Ny, self.Nz, self.H)
     else:
       raise ValueError("Solver type not recognized")
-    # we're done if no torque
+    # we're done if no curl eval required
     if not compute_curl:
       return self.U_hat_r, self.U_hat_i, self.P_hat_r, self.P_hat_i
-    # evaluate angular velocity otherwise
+    # evaluate curl and then angular velocity otherwise
     else:
-
       # use Fourier derivative operator in z for TP, and Chebyshev for DP
       if self.solverType == 'TP':
         Cu = self.U_hat_r[0::3] + 1j * self.U_hat_i[0::3]
@@ -236,39 +237,22 @@ def TriplyPeriodicStokes(fG_hat_r, fG_hat_i, eta, Ksq, Dx, Dy, Dz, Ntotal):
   Returns:
     U_hat_r, U_hat_i - real and complex part of Fourier coefficients of
                        fluid velocity on the grid. 
-  
+    P_hat_r, P_hat_i - " " for pressure 
   Note: We assume the net force on the unit cell is 0 by *ignoring* 
         the k = 0 mode. That is, the k=0 mode of the output solution
         will be 0.
   """
-  # separate x,y,z components
-  f_hat = (fG_hat_r[0::3] + 1j * fG_hat_i[0::3])
-  g_hat = (fG_hat_r[1::3] + 1j * fG_hat_i[1::3])
-  h_hat = (fG_hat_r[2::3] + 1j * fG_hat_i[2::3])
-
-  # precompute parts of RHS
-  p_hat = np.divide(-1.0 * (Dx * f_hat + Dy * g_hat + Dz * h_hat), Ksq, \
-                  out = np.zeros_like(f_hat), where = Ksq != 0, dtype = np.complex) 
-  I2 = np.divide(1, eta * Ksq, out = np.zeros_like(Ksq), where = Ksq != 0, dtype = np.double)
-  # solve for Fourier coeffs of velocity
-  u_hat = I2 * (f_hat - (Dx * p_hat))
-  v_hat = I2 * (g_hat - (Dy * p_hat))
-  w_hat = I2 * (h_hat - (Dz * p_hat))
-  # ignore k = 0
-  u_hat[0] = 0
-  v_hat[0] = 0
-  w_hat[0] = 0
-  # interleave solution components and split
-  # real/imaginary parts for passing back to c
+  P_hat_r = np.zeros((int(Ntotal/3),), dtype = np.double)
   U_hat_r = np.zeros((Ntotal,), dtype = np.double)
-  U_hat_r[0::3] = np.real(u_hat)
-  U_hat_r[1::3] = np.real(v_hat)
-  U_hat_r[2::3] = np.real(w_hat)
+  P_hat_i = np.zeros((int(Ntotal/3),), dtype = np.double)
   U_hat_i = np.zeros((Ntotal,), dtype = np.double)
-  U_hat_i[0::3] = np.imag(u_hat)
-  U_hat_i[1::3] = np.imag(v_hat)
-  U_hat_i[2::3] = np.imag(w_hat)
-  return U_hat_r, U_hat_i
+  libTPTools.TriplyPeriodicStokes(U_hat_r.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),\
+                                  U_hat_i.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),\
+                                  P_hat_r.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),\
+                                  P_hat_r.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),\
+                                  fG_hat_r, fG_hat_i, Dx, Dy, Dz,\
+                                  Ksq.ctypes.data_as(ctypes.POINTER(ctypes.c_double)), eta, Ntotal, num_threads)  
+  return U_hat_r, U_hat_i, P_hat_r, P_hat_i
 
 # Precomputations for all DP solvers
 def DoublyPeriodicStokes_init(Nx, Ny, Nz, Lx, Ly, H):
@@ -1032,3 +1016,16 @@ libDPTools.DoublyPeriodicSolve_slit_channel.argtypes = [ctypes.c_void_p,\
                                                      ctypes.c_uint, ctypes.c_uint,\
                                                      ctypes.c_uint, ctypes.c_int]
 libDPTools.DoublyPeriodicSolve_slit_channel.restype = None
+
+libTPTools.TriplyPeriodicStokes.argtypes = [ctypes.POINTER(ctypes.c_double),\
+                                            ctypes.POINTER(ctypes.c_double),\
+                                            ctypes.POINTER(ctypes.c_double),\
+                                            ctypes.POINTER(ctypes.c_double),\
+                                            np.ctypeslib.ndpointer(np.double),\
+                                            np.ctypeslib.ndpointer(np.double),\
+                                            np.ctypeslib.ndpointer(np.complex128),\
+                                            np.ctypeslib.ndpointer(np.complex128),\
+                                            np.ctypeslib.ndpointer(np.complex128),\
+                                            ctypes.POINTER(ctypes.c_double),\
+                                            ctypes.c_double, ctypes.c_uint, ctypes.c_int]
+libTPTools.TriplyPeriodicStokes.restype = None 

@@ -3,17 +3,20 @@
 #import common_interface_wrapper and run help(FCMJoint) for detailed usage information.
 import numpy as np
 from common_interface_wrapper import FCMJoint
-np.random.seed(1234)
+import sys
+np.random.seed(0)
 
 # Device to run the code, can be either 'cpu' or 'gpu'
-device = 'cpu'
+#device = 'cpu'
+device = sys.argv[1]
 
 # first set the domain type, extents, viscosity and number of paticles 
 # domType can be 'DPBW', 'DPSC', 'DP', 'TP'
 # for bottom wall, slit channel, no wall, and triply periodic
 domType = 'DPBW'
 nP = 2048 #Number of particles
-has_torque = True #Set to True if angular displacements are needed 
+has_torque = True # Set to True if angular displacements are needed
+useRegKernel = False # Set to True if do not want to use derivative kernels (cpu only)  
 viscosity = 0.957e-3
 #Simulation domain limits
 xmin = 0.0; xmax = 128.7923
@@ -25,7 +28,7 @@ solver = FCMJoint(device)
 solver.Initialize(numberParticles=nP, hydrodynamicRadius=1.0155, kernType=0,
                   domType=domType, has_torque=has_torque,
                   xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
-                  viscosity=viscosity, optInd=0, ref=False)
+                  viscosity=viscosity, optInd=0, ref=False, useRegKernel=useRegKernel)
 
 # now define some random positions
 xP = np.zeros(3 * nP, dtype = np.double) # Arbitrary xP inside the Z domain
@@ -54,7 +57,8 @@ MF = np.reshape(V, (nP, 3));
 print("Linear velocity of the first three particles: ")
 print(MF[0:3])
 
-MT = np.reshape(T, (nP, 3));
-print("Angular velocity of the first 3 particles: ")
-print(MT[0:3])
+if has_torque:
+  MT = np.reshape(T, (nP, 3));
+  print("Angular velocity of the first 3 particles: ")
+  print(MT[0:3])
 

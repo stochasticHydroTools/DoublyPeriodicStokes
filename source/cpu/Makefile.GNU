@@ -26,11 +26,13 @@ linSolveSRC     = src/LinearSolvers.cpp
 linSolveINC     = include/LinearSolvers.h
 dpToolsSRC      = src/DPTools.cpp
 dpToolsINC      = include/DPTools.h include/exceptions.h
+tpToolsSRC      = src/TPTools.cpp
+tpToolsINC      = include/TPTools.h
 bcSRC           = wrapper/BCWrapper.cpp
 bcINC           = include/BoundaryConditions.h include/common.h include/Grid.h include/ParticleList.h
 LIBS_           = libcheb.so libgrid.so libparticles.so libspreadInterp.so libspreadInterpDerivX.so\
                   libspreadInterpDerivY.so libspreadInterpDerivZ.so libtransform.so liblinSolve.so\
-                  libdpTools.so libBC.so
+                  libdpTools.so libtpTools.so libBC.so
 
 LIBS            = $(patsubst %,$(DPSTOKES_INSTALL)/%,$(LIBS_))
 
@@ -54,15 +56,15 @@ $(DPSTOKES_INSTALL)/libspreadInterp.so: $(spreadInterpSRC) $(spreadInterpINC) $(
 
 $(DPSTOKES_INSTALL)/libspreadInterpDerivX.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -DTORQUE_X -fPIC -fopenmp -lparticles
+	$(CXX) -DTORQUE_X -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -fPIC -fopenmp -lparticles
   
 $(DPSTOKES_INSTALL)/libspreadInterpDerivY.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -DTORQUE_Y -fPIC -fopenmp -lparticles
+	$(CXX) -DTORQUE_Y -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -fPIC -fopenmp -lparticles
 
 $(DPSTOKES_INSTALL)/libspreadInterpDerivZ.so: $(spreadInterpSRC) $(spreadInterpINC) $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
-	$(CXX) -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -DTORQUE_Z -fPIC -fopenmp -lparticles
+	$(CXX) -DTORQUE_Z -o $@ $(spreadInterpSRC) $(CXXFLAGS) $(SPREAD_FLAGS) -lfftw3 -fPIC -fopenmp -lparticles
 
 $(DPSTOKES_INSTALL)/libtransform.so: $(transformSRC) $(transformINC)
 	@mkdir -p $(DPSTOKES_INSTALL)
@@ -76,6 +78,10 @@ $(DPSTOKES_INSTALL)/libdpTools.so: $(dpToolsSRC) $(dpToolsINC) $(DPSTOKES_INSTAL
 	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(dpToolsSRC) $(CXXFLAGS) $(FFTW_FLAGS) $(LAPACKE_FLAGS) -lm $(LAPACKE_LIBS) \
 	-DHAVE_LAPACK_CONFIG_H -DLAPACK_COMPLEX_STRUCTURE -fopenmp -lfftw3_omp -lfftw3 -fPIC -llinSolve
+
+$(DPSTOKES_INSTALL)/libtpTools.so: $(tpToolsSRC) $(tpToolsINC) 
+	@mkdir -p $(DPSTOKES_INSTALL)
+	$(CXX) -o $@ $(tpToolsSRC) $(CXXFLAGS) -lm -fopenmp -fPIC  
 
 $(DPSTOKES_INSTALL)/libBC.so: $(bcSRC) $(bcINC) $(DPSTOKES_INSTALL)/libgrid.so $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)

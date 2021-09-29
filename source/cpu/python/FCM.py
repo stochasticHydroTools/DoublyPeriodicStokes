@@ -2,7 +2,7 @@ from Grid import *
 from Particles import *
 from SpreadInterp import *
 from Transform import *
-from Chebyshev import clencurt
+from Chebyshev import clencurt, chebCoeffDiff_perm
 from GridAndKernelConfig import configure_grid_and_kernels_xy, configure_grid_and_kernels_z
 from Solvers import Stokes
 
@@ -146,7 +146,7 @@ class FCM(object):
     print('unit cell := [%.4f,%.4f]x[%.4f,%.4f]x[%.4f,%.4f]\n' % (X[0], X[1], Y[0], Y[1], Z[0], Z[1])) 
 
 
-  def Initialize(self, viscosity, optInd, fac=1.5, ref=False):
+  def Initialize(self, viscosity, optInd, fac=1.5, ref=False, useRegKernel=False):
     """
     Initialize the grids, precompute the solver, and plan FFTs
     
@@ -189,9 +189,8 @@ class FCM(object):
       = configure_grid_and_kernels_xy(self.Lx, self.Ly, self.radP, self.kernTypes, optInd, self.has_torque, ref)
     # set the z grid 
     self.Lz, self.hz, self.Nz, self.z0\
-      = configure_grid_and_kernels_z(self.minZ, self.maxZ, self.hx, self.wm, self.wd, self.domType, self.has_torque, fac, ref)
-    # chebyshev grid and weights for z
-    self.zpts, self.zwts = clencurt(self.Nz, 0, self.Lz)
+      = configure_grid_and_kernels_z(self.minZ, self.maxZ, self.hx, self.wm, self.wd, self.domType, fac, ref)
+    self.zpts = self.zwts = None
     ####### print final settings #######
     dispstr = '\nFinal grid settings for '
     if self.domType == 'TP':
@@ -217,6 +216,8 @@ class FCM(object):
     # correct self.BCs based on domain
     if self.domType != 'TP':
       self.periodic_z = False
+      # chebyshev grid and weights for z
+      self.zpts, self.zwts = clencurt(self.Nz, 0, self.Lz)
     if self.domType == 'DPBW':
       # apply mirror-inv on bottom wall only for each solution component
       self.BCs[5 * self.dof] = self.BCs[5 * self.dof + 1] = self.BCs[5 * self.dof + 2] = 1
@@ -253,12 +254,17 @@ class FCM(object):
     #        - there will be a bvp solve and correction to the k=0 mode after each solve
     k0 = 0
     self.solver = Stokes(self.Nx, self.Ny, self.Nz, self.Lx, self.Ly, self.Lz, self.dof, self.viscosity, k0, self.domType)
+    self.useRegKernel = useRegKernel
     if self.domType != 'TP':
       self.solver.SetZ(self.zpts)
       # plan fftws
       self.transformer = Transformer(self.Nx, self.Ny, self.Nz, self.dof, 1)
+      if self.useRegKernel:
+        self.transformerT = Transformer(self.Nx, self.Ny, self.Nz, self.dof, 1)
     else:
       self.transformer = Transformer(self.Nx, self.Ny, self.Nz, self.dof, 0)
+      if self.useRegKernel:
+        self.transformerT = Transformer(self.Nx, self.Ny, self.Nz, self.dof, 0)
     print('Solver is ready\n')
 
   def SetPositions(self, xP):
@@ -295,16 +301,25 @@ class FCM(object):
       self.vP = np.zeros((self.dof * self.nP,), dtype = np.double); self.omegaP = 0
       if self.has_torque:
         print('Building dipole particle-grid search structures...')
-        self.tparticles = ParticlesGen(self.nP, self.dof, self.xP, np.zeros((3 * self.nP,)),\
-                                       self.radP, self.wd, self.cbetad, self.betadP)
-        self.tparticles.UseCbeta()
-        self.tparticles.IsDipole() # need to specify these are dipoles
-        self.tparticles.Make()
-        self.tparticles.Setup(self.tgrid)
-        self.omegaP = np.zeros((self.nP * self.dof), dtype = np.double)
-        self.dxvP = np.zeros((self.nP * self.dof), dtype = np.double)
-        self.dyvP = np.zeros((self.nP * self.dof), dtype = np.double)
-        self.dzvP = np.zeros((self.nP * self.dof), dtype = np.double)
+        if not self.useRegKernel:
+          self.tparticles = ParticlesGen(self.nP, self.dof, self.xP, np.zeros((3 * self.nP,)),\
+                                         self.radP, self.wd, self.cbetad, self.betadP)
+          self.tparticles.UseCbeta()
+          self.tparticles.IsDipole() # need to specify these are dipoles
+          self.tparticles.Make()
+          self.tparticles.Setup(self.tgrid)
+          self.omegaP = np.zeros((self.nP * self.dof), dtype = np.double)
+          self.dxvP = np.zeros((self.nP * self.dof), dtype = np.double)
+          self.dyvP = np.zeros((self.nP * self.dof), dtype = np.double)
+          self.dzvP = np.zeros((self.nP * self.dof), dtype = np.double)
+        else:
+          self.tparticles = ParticlesGen(self.nP, self.dof, self.xP, np.zeros((3 * self.nP,)),\
+                                         self.radP, self.wd, self.cbetad, self.betadP)
+          self.tparticles.UseCbeta()
+          self.tparticles.Make()
+          self.tparticles.Setup(self.tgrid)
+          self.omegaP = np.zeros((self.nP * self.dof), dtype = np.double)
+          self.curlT = np.zeros((self.Nx * self.Ny * self.Nz * self.dof,), dtype = np.complex)
       self.posinit = True 
     else: 
       if xP.shape[0] != 3 * self.nP:
@@ -335,56 +350,92 @@ class FCM(object):
     elif nf != 3 * self.nP:
       raise ValueError('Dimension mismatch in particle force array')
 
-    self.particles.SetData(forces)    
-
     # spread forces
+    self.particles.SetData(forces)    
     self.F = Spread(self.particles, self.grid); 
+    self.tG_hat_r = 0; self.tG_hat_i = 0;  
+    
     if self.has_torque:
-     
-      self.tparticles.SetData(torques)    
-
-      # spread derivative of torques, compute curl and add to F 
-      dxT = SpreadDx(self.tparticles, self.tgrid)
-      libSpreadInterp.addDx(self.grid.grid, self.tgrid.grid)
-      dyT = SpreadDy(self.tparticles, self.tgrid)
-      libSpreadInterp.addDy(self.grid.grid, self.tgrid.grid)
-      # set BC for z deriv
-      self.tgrid.SetBCs(self.BCst_z)
-      dzT = SpreadDz(self.tparticles, self.tgrid)
-      libSpreadInterp.addDz(self.grid.grid, self.tgrid.grid)
+      self.tparticles.SetData(torques)   
+      # spread derivatives of torque with derivative kernels 
+      if not self.useRegKernel: 
+        # spread derivative of torques, compute curl and add to F 
+        self.dxT = SpreadDx(self.tparticles, self.tgrid)
+        libSpreadInterp.addDx(self.grid.grid, self.tgrid.grid)
+        self.dyT = SpreadDy(self.tparticles, self.tgrid)
+        libSpreadInterp.addDy(self.grid.grid, self.tgrid.grid)
+        # set BC for z deriv
+        self.tgrid.SetBCs(self.BCst_z)
+        self.dzT = SpreadDz(self.tparticles, self.tgrid)
+        libSpreadInterp.addDz(self.grid.grid, self.tgrid.grid)
+      # spread torque with regular kernel and spectrally evaluate derivatives
+      else:
+        self.tG = Spread(self.tparticles, self.tgrid)
+        self.transformerT.Ftransform(self.tG)
+        if self.domType == 'TP':
+          self.tG_hat = self.transformerT.out_real + 1j * self.transformerT.out_imag
+          self.dyTz = self.solver.Dy * self.tG_hat[2::3]
+          self.dxTz = self.solver.Dx * self.tG_hat[2::3]
+          self.dxTy = self.solver.Dx * self.tG_hat[1::3]
+          self.dyTx = self.solver.Dy * self.tG_hat[0::3]
+          self.dzTy = self.solver.Dz * self.tG_hat[1::3]
+          self.dzTx = self.solver.Dz * self.tG_hat[0::3]
+        else: 
+          self.tG_hat = (self.transformerT.out_real + 1j * self.transformerT.out_imag).reshape((self.Ny * self.Nx, self.Nz, self.dof))
+          self.solver.Dy.shape = self.solver.Dx.shape = (self.Ny * self.Nx, 1) 
+          self.dyTz = (self.solver.Dy * self.tG_hat[:,:,2]).reshape((self.Nx * self.Ny * self.Nz,))
+          self.dxTz = (self.solver.Dx * self.tG_hat[:,:,2]).reshape((self.Nx * self.Ny * self.Nz,))
+          self.dxTy = (self.solver.Dx * self.tG_hat[:,:,1]).reshape((self.Nx * self.Ny * self.Nz,))
+          self.dyTx = (self.solver.Dy * self.tG_hat[:,:,0]).reshape((self.Nx * self.Ny * self.Nz,))
+          self.dzTy = chebCoeffDiff_perm(self.tG_hat[:,:,1], self.Nx, self.Ny, self.Nz, 1, self.Lz / 2).reshape((self.Nx * self.Ny * self.Nz,)) 
+          self.dzTx = chebCoeffDiff_perm(self.tG_hat[:,:,0], self.Nx, self.Ny, self.Nz, 1, self.Lz / 2).reshape((self.Nx * self.Ny * self.Nz,)) 
+        self.curlT[0::3] = 0.5 * (self.dyTz - self.dzTy)
+        self.curlT[1::3] = 0.5 * (self.dzTx - self.dxTz)
+        self.curlT[2::3] = 0.5 * (self.dxTy - self.dyTx)
+        self.tG_hat_r = np.real(self.curlT); self.tG_hat_i = np.imag(self.curlT) 
  
     # forward transform
     self.transformer.Ftransform(self.F)
     self.F_hat_r = self.transformer.out_real; 
-    self.F_hat_i = self.transformer.out_imag; 
-    # solve pde 
-    self.U_hat_r, self.U_hat_i, self.P_hat_r, self.P_hat_i = self.solver.Solve(self.F_hat_r, self.F_hat_i)
-  
-    # back transform
-    self.transformer.Btransform(self.U_hat_r, self.U_hat_i)
-    self.uG_r = self.transformer.out_real
-
-    # interpolate linear velocities on particles
-    self.grid.SetData(self.uG_r)
-    Interpolate(self.particles, self.grid, self.vP)
-
-    if self.has_torque:
-
-      # interpolate derivative of linear velocities on particles
-      self.tgrid.SetData(self.uG_r)
-      # set BC for x-y deriv
-      self.tgrid.SetBCs(self.BCs)
-      InterpolateDx(self.tparticles, self.tgrid, self.dxvP)
-      InterpolateDy(self.tparticles, self.tgrid, self.dyvP)
-      # set BC for z deriv
-      self.tgrid.SetBCs(self.BCst_z)
-      InterpolateDz(self.tparticles, self.tgrid, self.dzvP)
-      # reset boundary condition, since we changed it for z
-      self.tgrid.SetBCs(self.BCs)
-      # compute angular velocity of particles
-      self.omegaP[0::3] = -1/2 * (self.dyvP[2::3] - self.dzvP[1::3])
-      self.omegaP[1::3] = -1/2 * (self.dzvP[0::3] - self.dxvP[2::3]) 
-      self.omegaP[2::3] = -1/2 * (self.dxvP[1::3] - self.dyvP[0::3]) 
+    self.F_hat_i = self.transformer.out_imag;
+    if not self.useRegKernel or not self.has_torque: 
+      # solve pde 
+      self.U_hat_r, self.U_hat_i, self.P_hat_r, self.P_hat_i = self.solver.Solve(self.F_hat_r, self.F_hat_i)
+      # back transform
+      self.transformer.Btransform(self.U_hat_r, self.U_hat_i)
+      self.uG_r = self.transformer.out_real
+      # interpolate linear velocities on particles
+      self.grid.SetData(self.uG_r)
+      Interpolate(self.particles, self.grid, self.vP)
+      if self.has_torque:
+        # interpolate derivative of linear velocities on particles
+        self.tgrid.SetData(self.uG_r)
+        # set BC for x-y deriv
+        self.tgrid.SetBCs(self.BCs)
+        InterpolateDx(self.tparticles, self.tgrid, self.dxvP)
+        InterpolateDy(self.tparticles, self.tgrid, self.dyvP)
+        # set BC for z deriv
+        self.tgrid.SetBCs(self.BCst_z)
+        InterpolateDz(self.tparticles, self.tgrid, self.dzvP)
+        # reset boundary condition, since we changed it for z
+        self.tgrid.SetBCs(self.BCs)
+        # compute angular velocity of particles
+        self.omegaP[0::3] = -1/2 * (self.dyvP[2::3] - self.dzvP[1::3])
+        self.omegaP[1::3] = -1/2 * (self.dzvP[0::3] - self.dxvP[2::3]) 
+        self.omegaP[2::3] = -1/2 * (self.dxvP[1::3] - self.dyvP[0::3]) 
+    if self.useRegKernel and self.has_torque:
+      self.F_hat_r += self.tG_hat_r; self.F_hat_i += self.tG_hat_i
+      self.U_hat_r, self.U_hat_i, self.Ut_hat_r, self.Ut_hat_i, self.P_hat_r, self.P_hat_i = self.solver.Solve(self.F_hat_r, self.F_hat_i, self.useRegKernel) 
+      self.transformer.Btransform(self.U_hat_r, self.U_hat_i)
+      self.transformerT.Btransform(self.Ut_hat_r, self.Ut_hat_i)
+      self.uG_r = self.transformer.out_real
+      self.utG_r = self.transformerT.out_real
+      # interpolate linear velocities on particles
+      self.grid.SetData(self.uG_r)
+      Interpolate(self.particles, self.grid, self.vP)
+      # interpolate angular velocities on particles
+      self.tgrid.SetData(self.utG_r)
+      Interpolate(self.tparticles, self.tgrid, self.omegaP)
 
     return self.vP, self.omegaP
 
@@ -398,8 +449,11 @@ class FCM(object):
     self.transformer.Clean()
     self.solver.Clean()
     if self.has_torque:
-        self.tgrid.Clean()
-        self.tparticles.Clean()
+      self.tgrid.Clean()
+      self.tparticles.Clean()
+      if self.useRegKernel:
+        self.transformerT.Clean() 
+        self.transformerT = None
     self.posinit = False 
     self.particles = None
     self.tparticles = None

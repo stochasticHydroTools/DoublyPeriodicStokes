@@ -27,11 +27,13 @@ linSolveSRC     = src/LinearSolvers.cpp
 linSolveINC     = include/LinearSolvers.h
 dpToolsSRC      = src/DPTools.cpp
 dpToolsINC      = include/DPTools.h include/exceptions.h
+tpToolsSRC      = src/TPTools.cpp
+tpToolsINC      = include/TPTools.h
 bcSRC           = wrapper/BCWrapper.cpp
 bcINC           = include/BoundaryConditions.h include/common.h include/Grid.h include/ParticleList.h
 LIBS_           = libcheb.so libgrid.so libparticles.so libspreadInterp.so libspreadInterpDerivX.so\
                   libspreadInterpDerivY.so libspreadInterpDerivZ.so libtransform.so liblinSolve.so\
-                  libdpTools.so libBC.so
+                  libdpTools.so libtpTools.so libBC.so
 
 LIBS            = $(patsubst %,$(DPSTOKES_INSTALL)/%,$(LIBS_))
 
@@ -90,6 +92,9 @@ $(DPSTOKES_INSTALL)/libdpTools.so: $(dpToolsSRC) $(dpToolsINC) $(DPSTOKES_INSTAL
 	@mkdir -p $(DPSTOKES_INSTALL)
 	$(CXX) -o $@ $(dpToolsSRC) $(CXXFLAGS) $(FFTW_FLAGS) $(LAPACKE_FLAGS) $(LAPACKE_LIBS) -xHost -qopenmp -lfftw3 -fpic -llinSolve
 
+$(DPSTOKES_INSTALL)/libtpTools.so: $(tpToolsSRC) $(tpToolsINC)
+	@mkdir -p $(DPSTOKES_INSTALL)
+	$(CXX) -o $@ $(tpToolsSRC) $(CXXFLAGS) -xHost -lm -qopenmp -fpic
 
 $(DPSTOKES_INSTALL)/libBC.so: $(bcSRC) $(bcINC) $(DPSTOKES_INSTALL)/libgrid.so $(DPSTOKES_INSTALL)/libparticles.so
 	@mkdir -p $(DPSTOKES_INSTALL)
