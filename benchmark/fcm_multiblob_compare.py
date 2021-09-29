@@ -1,16 +1,23 @@
-from common_interface_wrapper import FCMJoint
+from common_interface_wrapper import *
 import numpy as np
 import scipy.io
 import matplotlib.pyplot as plt
+from timeit import default_timer as timer
+import sys
 # compute the mobility of a 2048 particle configuration 
 # with random forces and torques in DPBW
 
-device = 'cpu'
+
+
+device = sys.argv[1]
 domType = 'DPBW'
 has_torque = True
 eta = 0.957e-3
-nBlobs = 12 #nBlobs = 1 #nBlobs = 42
+#nBlobs = 1
+nBlobs = 12 
+#nBlobs = 42
 nP = 2048 * nBlobs
+plot = False
 if nBlobs == 1:
   radP = 1.0155 
   xP = np.loadtxt('./Test_Data_For_Rollers/Const_Torque_t_15.clones', skiprows=1, usecols=[0,1,2])
@@ -21,8 +28,10 @@ if nBlobs == 1:
 elif nBlobs == 12:
   radP = 0.42287520345118434 
   xP = np.loadtxt('./Test_Data_For_Rollers/MultiBlob/Cfg_12_blobs_per.txt', skiprows=1, usecols=[0,1,2])
+  np.random.seed(0)
   F = np.random.normal(0.0, 1.0, 3*nP)
   if has_torque:
+    np.random.seed(0)
     T = np.random.normal(0.0, 1.0, 3*nP)
 elif nBlobs == 42:
   radP = 0.247328128441116 
@@ -40,6 +49,7 @@ xP = np.reshape(xP, (nP * 3,)).copy()
 
 kernType = 0 * has_torque + 2 * (not has_torque)
 
+
 solver = FCMJoint(device)
 solver.Initialize(numberParticles=nP, hydrodynamicRadius=radP, kernType=kernType,
                   domType=domType, has_torque=has_torque,
@@ -47,13 +57,23 @@ solver.Initialize(numberParticles=nP, hydrodynamicRadius=radP, kernType=kernType
                   viscosity=eta, optInd=0)
 
 solver.SetPositions(xP)
-mob, mobt = solver.Mdot(F, T)
 
+nRuns = 30
+warmup = 10
+ttot = 0.0
+for j in range(0,nRuns):
+  t0 = timer()
+  mob, mobt = solver.Mdot(F, T)
+  t1 = timer()
+  if j >= warmup:
+    print('Time :', t1-t0)
+    ttot += t1-t0
+print('Time Average:', ttot / (nRuns-warmup))
 solver.Clean()
 
 print(mob)
 
-if nBlobs == 1:
+if nBlobs == 1 and plot:
   Mtt_x_f = data[:,2]
   Mtr_x_T = data[:,3]
   Mrt_x_F = data[:,4]

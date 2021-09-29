@@ -120,7 +120,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     err_opt_ave = np.sum(err_opt, axis=(0)) / nP
    
     #### print out and select grid options ############### 
-    print('Optimal grid with adjusted extent (optInd=-1):\n')
+    print('\n\tOptimal grid with adjusted extent (optInd=-1):\n')
     Nxopt = np.round(Lx / hopt).astype(np.int); Lxopt = hopt * Nxopt
     Nyopt = np.round(Ly / hopt).astype(np.int); Lyopt = hopt * Nyopt
     sout = [['L_x', 'L_y','N_x', 'N_y', 'h','%-err'],
@@ -128,7 +128,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     for row in sout:
       print("\t{:^16}\t{:^16}\t{:^8}\t{:^8}\t{:^16}\t{:^.5}".format(*row))
 
-    print('\nCandidate grids with user-defined extent (optInd=0,1,..):\n')
+    print('\n\tCandidate grids with user-defined extent (optInd=0,1,..):\n')
     sout = [['N_x', 'h','%-err']]
     for j in range(0,len(hx)):
       if not np.isinf(err_test_ave[j]):
@@ -166,7 +166,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
       hy /= 2; Ny *= 2
  
     ################# printout kernel settings ############ 
-    print('\nFinal kernel settings:\n')
+    print('\n\tFinal kernel settings:\n')
     sout = [['R_h','w_m','beta_m']]
     for iP in range(0,nP):
       if pSet == pSet_test:
@@ -292,7 +292,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     err_opt_ave = np.sum(errm_opt + errd_opt, axis=(0)) / nP
 
     #### print out and select grid options ############### 
-    print('Optimal grid with adjusted extent (optInd=-1):\n')
+    print('\n\tOptimal grid with adjusted extent (optInd=-1):\n')
     Nxopt = np.round(Lx / hopt).astype(np.int); Lxopt = hopt * Nxopt
     Nyopt = np.round(Ly / hopt).astype(np.int); Lyopt = hopt * Nyopt
     sout = [['L_x', 'L_y','N_x', 'N_y', 'h','%-err'],
@@ -301,7 +301,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
     for row in sout:
       print("\t{:^16}\t{:^16}\t{:^8}\t{:^8}\t{:^16}\t{:^.5}".format(*row))
     
-    print('\nCandidate grids with user-defined extent (optInd=0,1,..):\n')
+    print('\n\tCandidate grids with user-defined extent (optInd=0,1,..):\n')
     sout = [['N_x', 'h','%-err']]
     for j in range(0,len(hx)):
       if not np.isinf(err_test_ave[j]):
@@ -344,7 +344,7 @@ def configure_grid_and_kernels_xy(Lx, Ly, pRs, kernTypes, optInd, has_torque=Fal
 
    
     ################# printout kernel settings ############ 
-    print('\nFinal kernel settings:\n')
+    print('\n\tFinal kernel settings:\n')
     sout = [['R_h','w_m','w_d', 'beta_m','beta_d']]
     for iP in range(0,nP):
       if pSet == pSet_test:

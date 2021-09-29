@@ -1,5 +1,5 @@
 import numpy as np
-from common_interface_wrapper import FCMJoint
+from common_interface_wrapper import *
 
 def mobility_matrix(xPs, solver):
   """

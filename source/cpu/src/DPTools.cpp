@@ -594,7 +594,7 @@ extern "C"
   {
     // get velocities at bottom wall for BCs of correction problem
     solver->evalTheta(M_PI, 0); 
-    // plan nyx-1 ffts of length 2nz-2, or use wisdom (no op if plan exists)
+    // plan nyx-1 ffts of length 2nz-2 
     solver->plan_fft(); 
     int n = 2 * Nz - 2;
     if (!solver->corr_sol_hat)
@@ -709,7 +709,7 @@ extern "C"
     // get velocities at walls for BCs of correction problem
     solver->evalTheta(M_PI, 0); 
     solver->evalTheta(0, 1); 
-    // plan nyx-1 ffts of length z, or use wisdom (no op if plan exists)
+    // plan nyx-1 ffts of length z
     solver->plan_fft(); 
     double fac = 1.0 / 2.0 / eta;
     int one, eight; one = 1; eight = 8; int info; 

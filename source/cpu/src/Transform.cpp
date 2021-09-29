@@ -3,6 +3,9 @@
 #include<sstream>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include <unistd.h>
+#include <limits.h>
+
 
 Transform::Transform() : in_real(0),in_imag(0),out_real(0),out_imag(0),
                          out_real_tr(0), out_imag_tr(0), Nx(0),Ny(0),
@@ -37,6 +40,8 @@ void Transform::init(const unsigned int Nx, const unsigned int Ny,
   {
     mkdir("fftw_wisdom", 0777);
   }
+  char hostname[HOST_NAME_MAX + 1];
+  gethostname(hostname, HOST_NAME_MAX + 1);
   std::stringstream ss;
   ss << "fftw_wisdom/fftw_forward_wisdom_Nx" << this->Nx 
      << "_Ny" << this->Ny << "_Nz" << this->Nz << "_dof" << this->dof << "_nthr" << n_threads;
@@ -45,6 +50,7 @@ void Transform::init(const unsigned int Nx, const unsigned int Ny,
     #else
     ss << "_" << "measure";
     #endif
+  ss << "_" << hostname;
   std::string fname1 = ss.str(); ss.str("");
   ss << "fftw_wisdom/fftw_backward_wisdom_Nx" << this->Nx 
      << "_Ny" << this->Ny << "_Nz" << this->Nz << "_dof" << this->dof << "_nthr" << n_threads;
@@ -53,6 +59,7 @@ void Transform::init(const unsigned int Nx, const unsigned int Ny,
     #else
     ss << "_" << "measure";
     #endif
+  ss << "_" << hostname;
   std::string fname2 = ss.str(); ss.str("");
   int has_wisdom1 = fftw_import_wisdom_from_filename(fname1.c_str());
   if (has_wisdom1)

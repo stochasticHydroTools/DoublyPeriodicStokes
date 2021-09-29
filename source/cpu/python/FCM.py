@@ -143,7 +143,7 @@ class FCM(object):
     self.Lx = X[1] - X[0] 
     self.Ly = Y[1] - Y[0] 
     self.Lz = Z[1] - Z[0]
-    print('unit cell := [%.4f,%.4f]x[%.4f,%.4f]x[%.4f,%.4f]\n' % (X[0], X[1], Y[0], Y[1], Z[0], Z[1])) 
+    print('\tunit cell := [%.4f,%.4f]x[%.4f,%.4f]x[%.4f,%.4f]\n' % (X[0], X[1], Y[0], Y[1], Z[0], Z[1])) 
 
 
   def Initialize(self, viscosity, optInd, fac=1.5, ref=False, useRegKernel=False):
@@ -182,7 +182,7 @@ class FCM(object):
       solver member is initialized and memory allocated
       transformer members are initialized, memory allocated, and fftw plans created/loaded
     """
-    print('Determining the grid and configuring kernels...\n')
+    print('Determining the grid and configuring kernels...')
     # select x-y grid for the particles (if optInd=-1, optimal adjusted grid automatically chosen)
     self.Lx, self.Ly, self.hx, self.hy, self.Nx, self.Ny, self.wm,\
     self.wd, self.cbetam, self.cbetad, self.betamP, self.betadP\
@@ -192,7 +192,7 @@ class FCM(object):
       = configure_grid_and_kernels_z(self.minZ, self.maxZ, self.hx, self.wm, self.wd, self.domType, fac, ref)
     self.zpts = self.zwts = None
     ####### print final settings #######
-    dispstr = '\nFinal grid settings for '
+    dispstr = '\n\tFinal grid settings for '
     if self.domType == 'TP':
       dispstr = dispstr + 'Triply periodic domain:\n'
     elif self.domType == 'DP':
@@ -227,7 +227,7 @@ class FCM(object):
       self.BCs[5 * self.dof] = self.BCs[5 * self.dof + 1] = self.BCs[5 * self.dof + 2] = 1
     elif self.domType != 'TP' and self.domType != 'DP':
       raise ValueError("domType not supported")
-    print('Initializing force grid...\n')
+    print('Initializing force grid...')
     # make the grid and set up the particles on it
     self.grid = GridGen(self.Lx, self.Ly, self.Lz, self.minX, self.minY, self.z0, self.hx, self.hy, self.hz,\
                         self.Nx, self.Ny, self.Nz, self.dof, self.periodic_x,\
@@ -235,7 +235,7 @@ class FCM(object):
     self.grid.Make()
     if self.has_torque:
       # make torque grid and set up torque particles on it
-      print('Initializing torque grid...\n')
+      print('Initializing torque grid...')
       self.tgrid = GridGen(self.Lx, self.Ly, self.Lz, self.minX, self.minY, self.z0, self.hx, self.hy, self.hz,\
                            self.Nx, self.Ny, self.Nz, self.dof, self.periodic_x,\
                            self.periodic_y, self.periodic_z, self.BCs, self.zpts, self.zwts)
@@ -320,7 +320,8 @@ class FCM(object):
           self.tparticles.Setup(self.tgrid)
           self.omegaP = np.zeros((self.nP * self.dof), dtype = np.double)
           self.curlT = np.zeros((self.Nx * self.Ny * self.Nz * self.dof,), dtype = np.complex)
-      self.posinit = True 
+      self.posinit = True
+      print('Initialization complete. You may now call Mdot and SetPositions any number of times.\n') 
     else: 
       if xP.shape[0] != 3 * self.nP:
         raise ValueError('Positions array has incorrect length')
