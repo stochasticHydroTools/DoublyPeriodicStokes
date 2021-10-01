@@ -194,13 +194,13 @@ class FCM(object):
     ####### print final settings #######
     dispstr = '\n\tFinal grid settings for '
     if self.domType == 'TP':
-      dispstr = dispstr + 'Triply periodic domain:\n'
+      dispstr = dispstr + 'Triply periodic domain (TP):\n'
     elif self.domType == 'DP':
-      dispstr = dispstr + 'No wall domain:\n'
+      dispstr = dispstr + 'No wall domain (DP):\n'
     elif self.domType == 'DPBW':
-      dispstr = dispstr + 'Bottom wall domain:\n'
+      dispstr = dispstr + 'Bottom wall domain (DPBW):\n'
     else:
-      dispstr = dispstr + 'Two wall domain:\n'
+      dispstr = dispstr + 'Slit Channel domain (DPSC):\n'
     print(dispstr)
     print('\t (Nx, Ny, Nz) = (%d, %d, %d)' % (self.Nx, self.Ny, self.Nz)) 
     print('\t hxy = %.16f' % (self.hx))
@@ -321,7 +321,7 @@ class FCM(object):
           self.omegaP = np.zeros((self.nP * self.dof), dtype = np.double)
           self.curlT = np.zeros((self.Nx * self.Ny * self.Nz * self.dof,), dtype = np.complex)
       self.posinit = True
-      print('Initialization complete. You may now call Mdot and SetPositions any number of times.\n') 
+      print('Initialization complete.\n') 
     else: 
       if xP.shape[0] != 3 * self.nP:
         raise ValueError('Positions array has incorrect length')
@@ -343,7 +343,7 @@ class FCM(object):
                     - (vx1,vy1,vz1,...vxn,vyn,vzn) if has_torque=False
                     - (vx1,vy1,vz1,...vxn,vyn,vzn,wx1,wy1,wz1,...,wxn,wyn,wzn) if has_torque=True
     """
-    nf = forces.size; 
+    nf = forces.size
     if self.has_torque:
       nt = torques.size
       if nf + nt != 6 * self.nP:
