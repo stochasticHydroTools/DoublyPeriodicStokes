@@ -1,4 +1,4 @@
-addpath('../');
+addpath('../data');
 
 %this script generate pair mobility function f(r) and g(r) for TP case.
 %and validate through comparing with FCM analytical result (ref:maxey 2001)
