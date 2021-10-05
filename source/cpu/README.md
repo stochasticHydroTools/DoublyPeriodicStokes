@@ -2,8 +2,7 @@
 A spectral immersed boundary method for particle suspensions in Stokes flow on doubly and triply periodic domains.
 
 ### Build Dependencies ###
-The instructions here are for using cmake3 for the build process. This is not required, the Makefiles provided here work with GNU make. However, these Makefiles are meant to be called from the Makefile of the python interface common to the CPU and GPU implementations.
-
+The instructions here are for using `cmake3` for the build process. This is not required. The Makefiles provided here work with GNU make. However, these Makefiles are meant to be called from the Makefile of the python interface common to the CPU and GPU implementations.
 
 You will need to `apt install` at least the following dependencies:
 
@@ -129,7 +128,7 @@ the same optimal algorithm.
 Optimality can be further improved by switching FFTW_MEASURE to FFTW_PATIENT
 by adding `-Dfftw_wisdom_patient=on` to the `cmake` command
 
-For example, one way to generate wisdom beforehand whithout actually running 
+For example, one way to generate wisdom beforehand without actually running 
 a solver is to execute a python script with something like the following:
 
 ```python
@@ -141,9 +140,9 @@ Nx = Ny = 128; Nz = 65; dof = 3
 tType = 1
 # Initialize plans, generate wisdom if it doesn't already exist.
 # Assuming num_threads = 6 in config.py, the call will search for, 
-# or create files in fftw_wisdom/ called:
-# fftw_forward_wisdom_Nx128_Ny128_Nz126_dof3_nthr6_measure
-# fftw_backward_wisdom_Nx128_Ny128_Nz126_dof3_nthr6_measure
+# or create files in fftw_wisdom/ called something like:
+# fftw_forward_wisdom_Nx128_Ny128_Nz126_dof3_nthr6_measure_host.name
+# fftw_backward_wisdom_Nx128_Ny128_Nz126_dof3_nthr6_measure_host.name
 transformer = Transformer(Nx, Ny, Nz, dof, tType)
 # clean memory
 transformer.Clean()
