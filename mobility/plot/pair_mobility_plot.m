@@ -324,9 +324,9 @@ set(gca,'yticklabel',[])
 
 subplot(4,2,6);
 %
-semilogy(H_sc(H_sc<=9), M_sc(1,H_sc<=9,10,9), 's','color',cols(1,:), 'displayname','$w=6$, $d=3R_h$'); hold on;
-semilogy(H_sc(H_sc<=9), M_sc(2,H_sc<=9,10,9), 's','color',cols(2,:), 'displayname','$w=6$, $d=4R_h$'); hold on;
-semilogy(H_sc(H_sc<=9), M_sc(3,H_sc<=9,10,9), 's','color',cols(6,:), 'displayname','$w=6$, $d=8R_h$'); hold on;
+semilogy(H_sc(H_sc<=9), M_sc(1,H_sc<=9,10,9), 's','color',cols(1,:), 'displayname','$d=3R_h$'); hold on;
+semilogy(H_sc(H_sc<=9), M_sc(2,H_sc<=9,10,9), 's','color',cols(2,:), 'displayname','$d=4R_h$'); hold on;
+semilogy(H_sc(H_sc<=9), M_sc(3,H_sc<=9,10,9), 's','color',cols(6,:), 'displayname','$d=8R_h$'); hold on;
 semilogy(H_sc_ref(H_sc_ref<=9), M_sc_ref(1,H_sc_ref<=9,10,9),'-','color',cols(1,:),'displayname','Ref, $d=3R_h$');
 semilogy(H_sc_ref(H_sc_ref<=9), M_sc_ref(2,H_sc_ref<=9,10,9),'-','color',cols(2,:),'displayname','Ref, $d=4R_h$');
 semilogy(H_sc_ref(H_sc_ref<=9), M_sc_ref(3,H_sc_ref<=9,10,9),'-','color',cols(6,:),'displayname','Ref, $d=8R_h$');

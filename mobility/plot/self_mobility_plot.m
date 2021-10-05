@@ -43,12 +43,12 @@ faxen_quarter = (1-0.6526/H+0.1475*(1/H)^3-0.131*(1/H)^4-0.0644*(1/H)^5);
 
 plot(H_sc, M_sc(:,1,1),'o','color',cols(6,:), 'displayname', '$\mu_{xx}^{tt}$ $w=6$, SC','MarkerSize', 11); hold on;
 plot(H_sc_w4, M_sc_w4(:,1,1), 'o', 'color', cols(6,:),'MarkerFaceColor',cols(6,:), 'MarkerSize',6,'displayname', '$\mu_{xx}^{tt}$ $w=4$, SC');
-plot(data(1:44,1),data(1:44,2),'-','color', cols(6,:), 'Displayname','$\mu_{xx}^{tt}$ IBM $w=6$, SC');
+plot(data(1:44,1),data(1:44,2),'-','color', cols(6,:), 'Displayname','$\mu_{xx}^{tt}$ IBM, SC');
 plot(L/2,faxen_half,'ko','MarkerFaceColor','c','MarkerSize',10,'displayname','$\mu_{xx}^{tt}$ Faxen');
 plot(H_sc, M_sc(:,3,3),'o','color', cols(7,:),'displayname', '$\mu_{zz}^{tt}$ $w=6$, SC','MarkerSize', 11); 
 plot(H_sc_w4, M_sc_w4(:,3,3), 'o', 'color', cols(7,:),'MarkerFaceColor',cols(7,:), 'MarkerSize',6,'displayname', '$\mu_{zz}^{tt}$ $w=4$, SC','MarkerSize', 7);
 pl = plot(L/4,faxen_quarter,'ko', 'MarkerFaceColor','c','MarkerSize',10);
-plot(data(1:44,1),data(46:89,2),'-','color', cols(7,:)	,'displayname','$\mu_{zz}^{tt}$ IBM $w=6$, SC');
+plot(data(1:44,1),data(46:89,2),'-','color', cols(7,:)	,'displayname','$\mu_{zz}^{tt}$ IBM, SC');
 %plot(H_sc_ref, M_sc_ref(:,3,3),'-','color', cols(7,:),'displayname', '$\mu_{zz}^{tt}$ $w=12$, SC'); 
 
 set(get(get(pl,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
@@ -61,14 +61,14 @@ legend boxoff;
 %% rot-rot
 figure(2);
 subplot(1,1,1);
-plot(H_bw, M_bw(:,4,4),'s','color',cols(1,:),'displayname', '$\mu_{xx}^{rr}$ $w=6$, BW'); hold on;
+plot(H_bw, M_bw(:,4,4),'s','color',cols(1,:),'displayname', '$\mu_{xx}^{rr}$, BW'); hold on;
 plot(H_bw_ref, M_bw_ref(:,4,4),'-','color',cols(1,:),'displayname', '$\mu_{xx}^{rr}$ PRPB, BW','linewidth',5);
-plot(H_bw, M_bw(:,6,6),'s','color',cols(2,:), 'displayname', '$\mu_{zz}^{rr}$ $w=6$, BW'); 
+plot(H_bw, M_bw(:,6,6),'s','color',cols(2,:), 'displayname', '$\mu_{zz}^{rr}$, BW'); 
 plot(H_bw_ref, M_bw_ref(:,6,6),'-','color',cols(2,:),'displayname', '$\mu_{zz}^{rr}$ PRPB, BW','linewidth',5);
-plot(H_sc, M_sc(:,4,4),'o','color',cols(6,:),'displayname', '$\mu_{xx}^{rr}$ $w=6$, SC','markersize',7,'markerfacecolor',cols(6,:))
-plot(H_sc_ref, M_sc_ref(:,4,4),'-','color',cols(6,:),'displayname',' $\mu_{xx}^{rr}$ $w=12$, SC');
-plot(H_sc, M_sc(:,6,6),'o','color',cols(7,:),'displayname', '$\mu_{zz}^{rr}$ $w=6$, SC', 'markersize',7,'markerfacecolor',cols(7,:))
-plot(H_sc_ref, M_sc_ref(:,6,6),'-','color',cols(7,:),'displayname',' $\mu_{zz}^{rr}$ $w=12$, SC');
+plot(H_sc, M_sc(:,4,4),'o','color',cols(6,:),'displayname', '$\mu_{xx}^{rr}$, SC','markersize',7,'markerfacecolor',cols(6,:))
+plot(H_sc_ref, M_sc_ref(:,4,4),'-','color',cols(6,:),'displayname',' $\mu_{xx}^{rr}$ Ref, SC');
+plot(H_sc, M_sc(:,6,6),'o','color',cols(7,:),'displayname', '$\mu_{zz}^{rr}$, SC', 'markersize',7,'markerfacecolor',cols(7,:))
+plot(H_sc_ref, M_sc_ref(:,6,6),'-','color',cols(7,:),'displayname',' $\mu_{zz}^{rr}$ Ref, SC');
 
 xlim([0,4.8]);
 ylim([0,1.01]);
