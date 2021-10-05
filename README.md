@@ -4,7 +4,7 @@ This repository implements a variant on the Force Coupling Method for Stokes sus
 [CITE THE ARTICLE HERE]
 This repo also contains code and scripts to reproduce the data for the figures in the applications section of the article (see the README inside each folder for information about each simulation).
 
-We provide a simple python interface but the key performance-sensitive pieces (namely FFTs, BVP solvers, and spreading and interpolation) are implemented in C++/CUDA using FFTW/cuFFT and LAPACK. One can use either the GPU and CPU versions as needed without changing calls.
+We provide a simple python interface, but the key performance-sensitive pieces (namely FFTs, BVP solvers, and spreading and interpolation) are implemented in C++/CUDA using FFTW/cuFFT and LAPACK. One can use either the GPU and CPU versions as needed without changing calls.
 
 The doubly periodic Stokes solver for GPUs is provided by [UAMMD](https://github.com/RaulPPelaez/uammd), which is included as a submodule inside the `source/gpu` folder. **Make sure to clone this repo recursively** by doing:
 ```shell
@@ -12,7 +12,7 @@ git clone --recursive https://github.com/stochasticHydroTools/DPStokesTests
 ```
 At the moment, only a python interface to use the module is provided.
 
-The CPU version of the solver is included in `source/cpu`. In particular this implements an OpenMP-based C++ spreading and interpolation library in 3D that supports also non-uniform grids in the z direction. One can use the C++ library directly if desired, but there is a python interface as well.
+The CPU version of the solver is included in `source/cpu`. In particular, this implements an OpenMP-based C++ spreading and interpolation library in 3D that supports also non-uniform grids in the z direction. One can use the C++ library directly if desired, but there is a python interface as well.
 
 ## Installation
 
@@ -42,14 +42,14 @@ If you want to use the Intel compiler for the CPU code, prefix the call to make 
 CPU=Intel make
 ``` 
 Note, even if using the Intel compiler, you must load the module for gcc-6.4.0 or higher, 
-as the compiler relies on GNU headers. Also note that by default with Intel compilers the [MKL library](https://en.wikipedia.org/wiki/Math_Kernel_Library) is used to provide LAPACK/BLAS functionality.
+as the compiler relies on GNU headers. Also, note that by default with Intel compilers, the [MKL library](https://en.wikipedia.org/wiki/Math_Kernel_Library) is used to provide LAPACK/BLAS functionality. MKL (or other LAPACK/BLAS implementations) can be used with GNU compilers as well by specifying the relevant paths in the top level `Makefile`.
  
-You can compile both CPU and GPU libraries in debug node through
+You can compile both CPU and GPU libraries in debug mode through
 ```shell
 DEBUG=True make
 ```
-Both CPU and DEBUG can also be set from within the Makefile, though the 
-command line setting will override the ones in the Makefile.
+Both CPU and DEBUG can also be set from within the `Makefile`, though the 
+command line setting will override the ones in the `Makefile`.
 
 ## Python Interface
 
@@ -77,6 +77,7 @@ See `python_interface/dpstokesGPU.py` for a usage example. Once compiled and imp
 ### CPU Python interface
 
 See the `source/cpu/README.md` for details. Note, the build instructions contained therein are for using cmake3 as the build system. 
-The section can be ignored, or followed analogously through the provided top level Makefile. The file `python_interface/dpstokesCPU.py` contains an example. 
+The section can be ignored, or followed analogously through the provided top level Makefile. The file `python_interface/dpstokesCPU.py` contains an example.
+One can specify particles with differing radii in the CPU Python interface, though we only expose single radius setting in the joint interface. 
 OpenMP is used for parallelization and users should control the number of threads via the bash script `cpuconfig.sh`.
 
