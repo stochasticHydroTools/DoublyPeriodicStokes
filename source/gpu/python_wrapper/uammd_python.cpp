@@ -45,7 +45,9 @@ public:
   void Mdot(py::array_t<real> h_forces, py::array_t<real> h_torques,
 	    py::array_t<real> h_MF,
 	    py::array_t<real> h_MT){
-    dpstokes->Mdot(h_forces.data(), h_torques.data(),
+    auto h_torques_ptr = h_torques.data();
+    if(h_torques.size() == 0) h_torques_ptr = nullptr;
+    dpstokes->Mdot(h_forces.data(), h_torques_ptr,
 		   h_MF.mutable_data(), h_MT.mutable_data());
   }
 
