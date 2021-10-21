@@ -22,13 +22,16 @@ using namespace pybind11::literals;
   Calling initialize twice is cheaper than calling initialize, then clear, then initialize again.
 
 */
+#include<iostream>
 class DPStokesPython{
   std::shared_ptr<DPStokesGlue> dpstokes;
+  int numberParticles;
 public:
 
   //Initialize the modules with a certain set of parameters
   //Reinitializes if the module was already initialized
   void initialize(PyParameters pypar, int numberParticles){
+    this->numberParticles = numberParticles;
     dpstokes = std::make_shared<DPStokesGlue>();
     dpstokes->initialize(pypar, numberParticles);
   }
@@ -45,9 +48,8 @@ public:
   void Mdot(py::array_t<real> h_forces, py::array_t<real> h_torques,
 	    py::array_t<real> h_MF,
 	    py::array_t<real> h_MT){
-    auto h_torques_ptr = h_torques.data();
-    if(h_torques.size() == 0) h_torques_ptr = nullptr;
-    dpstokes->Mdot(h_forces.data(), h_torques_ptr,
+    dpstokes->Mdot((h_forces.size() < 3*numberParticles)?nullptr:h_forces.data(),
+		   (h_torques.size() < 3*numberParticles)?nullptr:h_torques.data(),
 		   h_MF.mutable_data(), h_MT.mutable_data());
   }
 
