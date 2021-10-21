@@ -32,7 +32,7 @@ class FCMJoint:
     def Initialize(self, numberParticles, hydrodynamicRadius, viscosity,
                    domType, has_torque,
                    xmax, ymax, zmin, zmax,
-                   xmin=0, ymin=0, kernType = 0, optInd=0, ref=False, useRegKernel=False):
+                   xmin=0, ymin=0, kernType = 0, optInd=0, ref=False):
       """
       Initialize the DPStokes module, can be called on an already initialize module to change the parameters.
         Inputs:
@@ -56,8 +56,6 @@ class FCMJoint:
                   - 'DPSC' for doubly periodic slit channel
           has_torque - bool specifying if problem has torque
           ref - doubly resolved grid (2x pts in each direction, for reference computation. default=False)
-          useRegKernel - will use spectral differentiation and regular kernel for problems with torque
-                       - this option is slower (default=False) 
 
         Stdout: 
           - The optimal *adjusted* grid is displayed (optInd = -1)
@@ -68,15 +66,12 @@ class FCMJoint:
       self.has_torque = has_torque
       self.viscosity = viscosity
       self.radP = hydrodynamicRadius*np.ones(numberParticles)
-      self.kernTypes = (kernType*np.ones(numberParticles, dtype=int)).astype(np.int)
+      self.kernTypes = kernType*np.ones(numberParticles, dtype=int)
       if self.device == 'cpu':
           self.cpusolver = FCM(self.radP, self.kernTypes, domType, has_torque)
           self.cpusolver.SetUnitCell([xmin,xmax], [ymin,ymax], [zmin,zmax])
-          self.cpusolver.Initialize(viscosity, optInd=optInd, ref=ref, useRegKernel=useRegKernel)
+          self.cpusolver.Initialize(viscosity, optInd=optInd, ref=ref)
           self.cpuCreated = True
-          self.hx = self.cpusolver.hx
-          self.hy = self.cpusolver.hy
-          self.hz = self.cpusolver.hz
       elif self.device == 'gpu':
           Lx, Ly, hx, hy, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
               = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, self.radP, self.kernTypes, optInd, has_torque, ref)
@@ -96,9 +91,6 @@ class FCMJoint:
                                        beta=beta[0]*w[0], beta_d=beta_d[0]*w_d[0],
                                        nx=nx, ny=ny, nz=nz, mode=mode)
           print(self.par)
-          self.hx = hx
-          self.hy = hy
-          self.hz = hz
           if not self.gpuCreated:
               self.gpusolver = uammd.DPStokes()
               self.gpuCreated = True
@@ -118,7 +110,7 @@ class FCMJoint:
         if self.device == 'cpu':
             self.cpusolver.SetPositions(positions)
         elif self.device == 'gpu':
-            self.gpusolver.setPositions(positions)
+            self.gpusolver.setPositions(self.precision(positions))
 
     def Mdot(self, forces, torques=np.array(0)):
         """Computes the product of the Mobility tensor with the provided forces and torques. 
@@ -127,9 +119,9 @@ class FCMJoint:
         if self.device == 'cpu':
             MF, MT  = self.cpusolver.Mdot(forces, torques)
         elif self.device == 'gpu':
-            MT = np.zeros(torques.size, self.precision)
             MF = np.zeros(forces.size, self.precision)
-            self.gpusolver.Mdot(forces=forces, torques=torques,
+            MT = np.zeros(torques.size, self.precision)
+            self.gpusolver.Mdot(forces=self.precision(forces), torques=self.precision(torques),
                                 velocities=MF, angularVelocities=MT)
         
         return MF, MT
