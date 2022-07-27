@@ -37,11 +37,11 @@ if (domType == 'DPBW' and not ref_rpy) or domType == 'DPSC':
   for iH in range(0, nHeights):
     xPs[iH, 0] = xPs[iH, 1] = xmax / 2
     xPs[iH, 2] = heights[iH]
-  
+
   solver.Initialize(numberParticles=1, hydrodynamicRadius=radP, kernType=kernType,
                     domType=domType, has_torque=has_torque,
                     xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
-                    viscosity=eta, optInd=0, ref=ref2x, useRegKernel=False)
+                    viscosity=eta, optInd=0, ref=ref2x)
   M, NormMat = mobility_matrix(xPs, solver)
   solver.Clean()
 
@@ -55,7 +55,7 @@ elif domType == 'DPBW' and ref_rpy:
   for iH in range(0, nHeights):
     xPs[iH,0:3] = [0, 0, heights[iH]]
     xPs[iH,3::] = [1e-20, 0, heights[iH]]
-  
+
   M, NormMat = mobility_matrix_numba(xPs, eta, L, radP, num_imgs=num_imgs, self=True)
 
 
