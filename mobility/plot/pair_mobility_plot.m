@@ -31,7 +31,7 @@ cols =  distinguishable_colors(20);
 subplot = @(m,n,p) subtightplot (m, n, p, [0.04 0.01], [0.1 0.05], [0.1 0.05]);
 %% trans-trans
 figure(1);
-subplot(3,2,1);
+subplot(4,2,1);
 pl(1)=plot(H_bw, M_bw(1,:,4,1), 's','color',cols(1,:), 'displayname','FCM $w=6$, $d=3R_h$'); hold on;
 pl(2)=plot(H_bw_w4, M_bw_w4(1,:,4,1),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','FCM $w=4$, $d=3R_h$');
 pl(3)=plot(H_bw_ref, M_bw_ref(1,:,4,1),'-','color',cols(1,:),'displayname','RPB, $d=3R_h$');
@@ -56,7 +56,7 @@ ylim([0,0.44]);
 title('Bottom wall');
 
 
-subplot(3,2,2);
+subplot(4,2,2);
 pl(1)=plot(H_sc, M_sc(1,:,4,1), 's','color',cols(1,:), 'displayname','FCM $w=6$, $d=3R_h$'); hold on;
 pl(2)=plot(H_sc_w4, M_sc_w4(1,:,4,1),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','FCM $w=4$, $d=3R_h$');
 pl(3)=plot(H_sc_ref, M_sc_ref(1,:,4,1),'-','color',cols(1,:),'displayname','RPB, $d=3R_h$');
@@ -82,7 +82,7 @@ title('Slit channel');
 set(gca,'yticklabel',[])
 
 
-subplot(3,2,3);
+subplot(4,2,3);
 pl(1)=plot(H_bw, M_bw(1,:,6,3), 's','color',cols(1,:), 'displayname','FCM $w=6$, $d=3R_h$'); hold on;
 pl(2)=plot(H_bw_w4, M_bw_w4(1,:,6,3),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','FCM $w=4$, $d=3R_h$');
 plot(H_bw_ref, M_bw_ref(1,:,6,3),'-','color',cols(1,:),'displayname','Ref, $d=3R_h$');
@@ -106,7 +106,7 @@ xlim([0,9.6]);
 ylim([0,0.17]);
 set(gca,'ytick',[0,0.05,0.1,0.15]);
 
-subplot(3,2,4);
+subplot(4,2,4);
 pl(1)=plot(H_sc, M_sc(1,:,6,3), 's','color',cols(1,:), 'displayname','FCM $w=6$, $d=3R_h$'); hold on;
 pl(2)=plot(H_sc_w4, M_sc_w4(1,:,6,3),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','FCM $w=4$, $d=3R_h$');
 pl(3)=plot(H_sc_ref, M_sc_ref(1,:,6,3),'-','color',cols(1,:),'displayname','RPB, $d=3R_h$');
@@ -131,7 +131,7 @@ ylim([0,0.17]);
 set(gca,'yticklabel',[])
 
 
-subplot(3,2,5);
+subplot(4,2,5);
 plot(H_bw, M_bw(1,:,4,3), 's','color',cols(1,:), 'displayname','$w=6$, $d=3R_h$'); hold on;
 pl(1)=plot(H_bw_w4, M_bw_w4(1,:,4,3),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','$w=4$, $d=3R_h$');
 pl(2)=plot(H_bw_ref, M_bw_ref(1,:,4,3),'-','color',cols(1,:),'displayname','RPB, $d=3R_h$');
@@ -154,9 +154,9 @@ legend boxoff;
 xlim([0,9.6]);
 ylim([0,0.06]);
 set(gca,'ytick',[0,0.02,0.04,0.06]);
-xlabel('$z/R_h$');
+%xlabel('$z/R_h$');
 
-subplot(3,2,6);
+subplot(4,2,6);
 %
 pl(1)=plot(H_sc, M_sc(1,:,4,3), 's','color',cols(1,:), 'displayname','FCM $w=6$, $d=3R_h$'); hold on;
 plot(H_sc_w4, M_sc_w4(1,:,4,3),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','$w=4$, $d=3R_h$');
@@ -179,15 +179,65 @@ legend show;
 legend boxoff;
 xlim([0,9.6]);
 ylim([0,0.06]);
+%xlabel('$z/R_h$');
+set(gca,'yticklabel',[])
+
+
+subplot(4,2,7);
+plot(H_bw, M_bw(1,:,5,2), 's','color',cols(1,:), 'displayname','$w=6$, $d=3R_h$'); hold on;
+pl(1)=plot(H_bw_w4, M_bw_w4(1,:,5,2),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','$w=4$, $d=3R_h$');
+pl(2)=plot(H_bw_ref, M_bw_ref(1,:,5,2),'-','color',cols(1,:),'displayname','RPB, $d=3R_h$');
+%
+plot(H_bw, M_bw(2,:,5,2), 's','color',cols(2,:), 'displayname','$w=6$, $d=4R_h$'); hold on;
+pl(3)=plot(H_bw_w4, M_bw_w4(2,:,5,2),'s', 'color',cols(2,:),'MarkerFaceColor',cols(2,:), 'MarkerSize',6,'displayname','$w=4$, $d=4R_h$');
+pl(4)=plot(H_bw_ref, M_bw_ref(2,:,5,2),'-','color',cols(2,:),'displayname','RPB, $d=4R_h$');
+%
+plot(H_bw, M_bw(3,:,5,2), 's','color',cols(6,:), 'displayname','$w=6$, $d=8R_h$'); hold on;
+pl(5)=plot(H_bw_w4, M_bw_w4(3,:,5,2),'s', 'color',cols(6,:),'MarkerFaceColor',cols(6,:), 'MarkerSize',6,'displayname','$w=4$, $d=4R_h$');
+pl(6)=plot(H_bw_ref, M_bw_ref(3,:,5,2),'-','color',cols(6,:),'displayname','RPB, $d=8R_h$');
+for j = 1:6
+  set(get(get(pl(j),'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+end
+ylabel('$(6\pi\eta R_h)\mu_{yy}^{tt}$');
+hYLabel = get(gca,'YLabel');
+%set(hYLabel,'rotation',0,'VerticalAlignment','middle')
+%legend show;
+%legend boxoff;
+xlim([0,9.6]);
+ylim([0,0.24]);
+set(gca,'ytick',[0,0.08,0.16,0.24]);
+xlabel('$z/R_h$');
+
+subplot(4,2,8);
+%
+pl(1)=plot(H_sc, M_sc(1,:,5,2), 's','color',cols(1,:), 'displayname','FCM $w=6$, $d=3R_h$'); hold on;
+plot(H_sc_w4, M_sc_w4(1,:,5,2),'s', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname','$w=4$, $d=3R_h$');
+pl(2)=plot(H_sc_ref, M_sc_ref(1,:,5,2),'-','color',cols(1,:),'displayname','Reference, $d=3R_h$');
+%
+pl(3)=plot(H_sc, M_sc(2,:,5,2), 's','color',cols(2,:), 'displayname','FCM $w=6$, $d=4R_h$'); hold on;
+plot(H_sc_w4, M_sc_w4(2,:,5,2),'s', 'color',cols(2,:),'MarkerFaceColor',cols(2,:), 'MarkerSize',6,'displayname','$w=4$, $d=4R_h$');
+pl(4)=plot(H_sc_ref, M_sc_ref(2,:,5,2),'-','color',cols(2,:),'displayname','Reference, $d=4R_h$');
+%
+pl(5)=plot(H_sc, M_sc(3,:,5,2), 's','color',cols(6,:), 'displayname','FCM $w=6$, $d=8R_h$'); hold on;
+plot(H_sc_w4, M_sc_w4(3,:,5,2),'s', 'color',cols(6,:),'MarkerFaceColor',cols(6,:), 'MarkerSize',6,'displayname','$w=4$, $d=8R_h$');
+pl(6)=plot(H_sc_ref, M_sc_ref(3,:,5,2),'-','color',cols(6,:),'displayname','Reference, $d=8R_h$');
+for j = 1:6
+  set(get(get(pl(j),'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+end
+%ylabel('$\mu_{xz}^{tt}$');
+hYLabel = get(gca,'YLabel');
+%set(hYLabel,'rotation',0,'VerticalAlignment','middle')
+%legend show;
+%legend boxoff;
+xlim([0,9.6]);
+ylim([0,0.24]);
 xlabel('$z/R_h$');
 set(gca,'yticklabel',[])
 
 
 for j =1:6
-    subplot(3,2,j);
-    if j ~= 5 && j ~= 6
-        set(gca,'XTick',[]);
-    end
+    subplot(4,2,j);
+    set(gca,'XTick',[]);
 end
 
 %% rot-rot
