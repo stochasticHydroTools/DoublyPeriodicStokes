@@ -44,7 +44,7 @@ fr_FCM=((1.0+sigma_w6*sigma_w6./Ls_u./Ls_u).*erf(Ls_u/sqrt(2.0)/sigma_w6)...
 
 gr_FCM=((1.0-3.0*sigma_w6*sigma_w6./Ls_u./Ls_u).*erf(Ls_u/sqrt(2.0)/sigma_w6)...
     +6.0*sigma_w6*(2.0*pi)^(-0.5).*exp(-Ls_u.*Ls_u/2/sigma_w6/sigma_w6)./Ls_u)...
-    /8.0/pi/eta./Ls_u;
+    /8.0/pi/eta./Ls_u.^3;
 
 fr_FCM_w4=((1.0+sigma_w4*sigma_w4./Ls_u./Ls_u).*erf(Ls_u/sqrt(2.0)/sigma_w4)...
     -2*sigma_w4*(2.0*pi)^(-0.5).*exp(-Ls_u.*Ls_u/2/sigma_w4/sigma_w4)./Ls_u)...
@@ -52,15 +52,15 @@ fr_FCM_w4=((1.0+sigma_w4*sigma_w4./Ls_u./Ls_u).*erf(Ls_u/sqrt(2.0)/sigma_w4)...
 
 gr_FCM_w4=((1.0-3.0*sigma_w4*sigma_w4./Ls_u./Ls_u).*erf(Ls_u/sqrt(2.0)/sigma_w4)...
     +6.0*sigma_w4*(2.0*pi)^(-0.5).*exp(-Ls_u.*Ls_u/2/sigma_w4/sigma_w4)./Ls_u)...
-    /8.0/pi/eta./Ls_u;
+    /8.0/pi/eta./Ls_u.^3;
 
 
 % absolute difference in pair mobility function f(r) compare with FCM ref
 abs_diff_fr_w6 = (mobx_u_w6' +2.8373*Rh_u_w6/Lbox/(6*pi*eta*Rh_u_w6)- fr_FCM);
 abs_diff_fr_w4 = (mobx_u_w4' +2.8373*Rh_u_w4/Lbox/(6*pi*eta*Rh_u_w4)- fr_FCM_w4);
 
-abs_diff_gr_w4 = (mobx_u_w4_gr' - gr_FCM_w4);
-abs_diff_gr_w6 = (mobx_u_w6_gr' - gr_FCM);
+abs_diff_gr_w4 = (mobx_u_w4_gr' - Ls_u.^2.*gr_FCM_w4);
+abs_diff_gr_w6 = (mobx_u_w6_gr' - Ls_u.^2.*gr_FCM);
 
 Ls_u(1)=0; %shift back to zero
 
@@ -82,21 +82,21 @@ l4=plot(ax1,Ls_u'/Rh_u_w4, Ls_u'.*mobx_u_w4_gr...
 l5=plot(ax1,Ls_u'/Rh_u_w6, Ls_u'.*mobx_u_w6_gr...
     *8*pi*eta,'m.','MarkerSize',10,'LineWidth',2);hold on;
 
-l6=plot(ax1,Ls_u/Rh_u_w6, Ls_u.*gr_FCM*8*pi*eta,'k--','LineWidth',3); 
+l6=plot(ax1,Ls_u/Rh_u_w6, Ls_u.^3.*gr_FCM*8*pi*eta,'k--','LineWidth',3); 
 
 hold off
 ax1.FontSize=20;
 ax1.LineWidth=2;
 
-legend([l1(1) l2(1) l3(1) l4(1) l5(1) l6(1)],{'$f(r)$, $w=4$','$f(r)$, $w=6$','$f_{FCM}(r)$ reference',...
-    '$g(r)$, $w=4$','$g(r)$, $w=6$','$g_{FCM}(r)$ reference'}...
+legend([l1(1) l2(1) l3(1) l4(1) l5(1) l6(1)],{'$\tilde{f}(d)$, $w=4$','$\tilde{f}(d)$, $w=6$','$\tilde{f}_{FCM}(d)$ reference',...
+    '$\tilde{g}(d)$, $w=4$','$\tilde{g}(r)$, $w=6$','$\tilde{g}_{FCM}(r)$ reference'}...
     ,'interpreter','latex','FontSize', 26,'Location','southeast')
 legend boxoff;
 
 %title(ax1,'Validate pair mobility functions: $f(r)$ and $g(r)$','interpreter','latex','FontSize', 26);
-xlabel(ax1,'$r/R_h$','interpreter','latex','FontSize', 26);
-ylabel(ax1,'$8\pi\eta r f(r)$ and $8\pi\eta r g(r)$','interpreter','latex','FontSize', 26);
-
+xlabel(ax1,'$d/R_h$','interpreter','latex','FontSize', 26);
+%ylabel(ax1,'$8\pi\eta r f(r)$ and $8\pi\eta r g(r)$','interpreter','latex','FontSize', 26);
+ylabel(ax1,'$\tilde{f}(d)$ and $\tilde{g}(d)$','interpreter','latex','Fontsize',26);
 xlim([0 15])
 ylim([0 1.16])
 
@@ -148,12 +148,13 @@ end
 hold off
 ax2.FontSize=20;
 ax2.LineWidth=2;
-legend([l1(1) l2(1) l3(1) l4(1)],{'$f(r)$, $w=4$','$f(r)$, $w=6$',...
-    '$g(r)$, $w=4$','$g(r)$, $w=6$'}...
+legend([l1(1) l2(1) l3(1) l4(1)],{'$\Delta\tilde{f}(d)$, $w=4$','$\Delta\tilde{f}(d)$, $w=6$',...
+    '$\Delta\tilde{g}(d)$, $w=4$','$\Delta\tilde{g}(d)$, $w=6$'}...
     ,'interpreter','latex','FontSize', 26,'Location','northeast')
 %title(ax2,'Absolute error in $f(r)$ and $g(r)$','interpreter','latex','FontSize', 26);
-xlabel(ax2,'$r/R_h$','interpreter','latex','FontSize', 26);
-ylabel(ax2,'$f(r)-f_{FCM}(r)$ and $g(r)-g_{FCM}(r)$','interpreter','latex','FontSize', 26);
+xlabel(ax2,'$d/R_h$','interpreter','latex','FontSize', 26);
+%ylabel(ax2,'$f(r)-f_{FCM}(r)$ and $g(r)-g_{FCM}(r)$','interpreter','latex','FontSize', 26);
+ylabel(ax2,'$\Delta\tilde{f}(d)$ and $\Delta\tilde{g}(d)$','interpreter','latex','FontSize',26);
 
 xlim([0 15])
 ylim([-1.5e-3 2.2e-3])

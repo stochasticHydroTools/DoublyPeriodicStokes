@@ -73,6 +73,7 @@ for i = 1:2
     subplot(1,2,i);
     for j = 1:length(ws)
         pl = plot(betas*ws(j),Rhs(j,:)/(h*ws(j)),'o','Displayname',strcat('$w = $', num2str(ws(j)))); hold on;
+        ax = gca; ax.LineWidth = 3;
         pl.Color = cols(j,:);
     end
     %p = polyfit(betas*ws(end),Rhs(end,:)/(h*ws(end)),10);
@@ -121,12 +122,13 @@ for i = 1:2
     end  
     
     % plot percent error in c(w)
-    figure(3);
+    figure(3); 
     bax = linspace(min(betas),max(betas));
     subplot(1,2,i);
     for j = 1:length(ws)
         splnE(j) = pchip(betas*ws(j),err(j,:));
-        semilogy(betas,err(j,:),'s','color',cols(j,:),'Displayname',strcat('$w = $',num2str(ws(j)))); hold on; grid on;
+        semilogy(betas,err(j,:),'s','color',cols(j,:),'Displayname',strcat('$w = $',num2str(ws(j)))); hold on;
+        ax = gca; ax.LineWidth = 3; 
         bax_err = linspace(min(betas*ws(j)),max(betas)*ws(j),1000);
         splneval = ppval(splnE(j),bax_err);
         if strcmp(pType,'Monopole') 
@@ -151,7 +153,7 @@ for i = 1:2
     end
     xlabel('$\beta/w$');
     if i == 1
-        ylabel('\%-error');
+        ylabel('\%-error','rotation',90);
         legend show; legend boxoff;
     else
         set(gca,'yticklabels',[]);

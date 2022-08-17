@@ -26,7 +26,7 @@ subplot = @(m,n,p) subtightplot (m, n, p, [0.04 0.02], [0.1 0.05], [0.1 0.05]);
 cols =  distinguishable_colors(20);
 
 %% trans-trans
-figure(1);
+figure(1); clf
 subplot(1,1,1);
 plot(H_bw, M_bw(:,1,1),'s','color',cols(1,:), 'displayname', '$\mu_{xx}^{tt}$ $w=6$, BW'); hold on;
 plot(H_bw_w4, M_bw_w4(:,1,1), 's', 'color',cols(1,:),'MarkerFaceColor',cols(1,:), 'MarkerSize',6,'displayname', '$\mu_{xx}^{tt}$ $w=4$, BW');
@@ -52,14 +52,15 @@ plot(data(1:44,1),data(46:89,2),'-','color', cols(7,:)	,'displayname','$\mu_{zz}
 %plot(H_sc_ref, M_sc_ref(:,3,3),'-','color', cols(7,:),'displayname', '$\mu_{zz}^{tt}$ $w=12$, SC'); 
 
 set(get(get(pl,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
-
+ax = gca
+ax.LineWidth = 3
 xlabel('$z/R_h$');
 ylabel('$(6\pi\eta R_h) \mu^{tt}$')
 legend show;
 legend boxoff;
 
 %% rot-rot
-figure(2);
+figure(2); clf
 subplot(1,1,1);
 plot(H_bw, M_bw(:,4,4),'s','color',cols(1,:),'displayname', '$\mu_{xx}^{rr}$, BW'); hold on;
 plot(H_bw_ref, M_bw_ref(:,4,4),'-','color',cols(1,:),'displayname', '$\mu_{xx}^{rr}$ PRPB, BW','linewidth',5);
@@ -76,9 +77,11 @@ xlabel('$z/R_h$');
 ylabel('$(8\pi\eta R_h^3)\mu^{rr}$');
 legend show;
 legend boxoff;
+ax = gca
+ax.LineWidth = 3
 
 %% trans-rot
-figure(3);
+figure(3);clf
 subplot(1,2,1);
 semilogy(H_bw, abs(M_bw(:,2,4)),'bs', 'displayname', '$\mu_{yx}^{tr}$ $w=6$'); hold on;
 semilogy(H_bw_ref2x, M_bw_ref2x(:,2,4),'o--','color',cols(6,:),'displayname','$\mu_{yx}^{tr}$ $w=12$','MarkerFaceColor',cols(6,:),'MarkerSize', 6)
@@ -93,6 +96,8 @@ xlim([0,9.6])
 set(gca,'ytick',[1e-5,1e-4,1e-3,1e-2,1e-1]);
 legend show;
 legend boxoff;
+ax = gca
+ax.LineWidth = 3
 
 subplot(1,2,2);
 semilogy(H_sc, abs(M_sc(:,2,4)),'bs', 'displayname', '$\mu_{yx}^{tr}$ $w=6$'); hold on;
@@ -104,3 +109,5 @@ ylim([1e-5,1e-1]);
 set(gca,'yticklabels',[]);
 legend show;
 legend boxoff;
+ax = gca
+ax.LineWidth = 3
