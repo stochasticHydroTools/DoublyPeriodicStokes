@@ -41,14 +41,14 @@ class FCMJoint:
           xmin, xmax, ymin, ymax, zmin, zmax - The simulation box limits
           viscosity - for the Stokes problem
           optInd - which of the candidate grids to select (see stdout). Default is 0.
-          radP - particle radius 
+          radP - particle radius
           kernTypes - kernel type (default=0):
-                    - 0 for ES 6 pt (both monopole and dipole if has_torque = true) 
+                    - 0 for ES 6 pt (both monopole and dipole if has_torque = true)
                     - 1 for ES 5 pt (both monopole and dipole if has_torque = true)
-                    - 2 for ES 4 pt (only monopole, dipole not supported) 
+                    - 2 for ES 4 pt (only monopole, dipole not supported)
                     - 3 for ES 6 pt monopole, ES 5 pt dipole
                     - 4 for ES 6 pt monopole, ES 4 pt dipole
-                    - 5 for ES 5 pt monopole, ES 4 pt dipole 
+                    - 5 for ES 5 pt monopole, ES 4 pt dipole
           domType - domain type:
                   - 'TP' for triply periodic
                   - 'DP' for doubly periodic
@@ -57,7 +57,7 @@ class FCMJoint:
           has_torque - bool specifying if problem has torque
           ref - doubly resolved grid (2x pts in each direction, for reference computation. default=False)
 
-        Stdout: 
+        Stdout:
           - The optimal *adjusted* grid is displayed (optInd = -1)
           - Several candidate fft-friendly grids are displayed (optInd = 0,1,..)
           - The final kernel settings for each particle size are displayed
@@ -75,7 +75,7 @@ class FCMJoint:
       elif self.device == 'gpu':
           Lx, Ly, hx, hy, nx, ny, w, w_d, cbeta, cbeta_d, beta, beta_d\
               = configure_grid_and_kernels_xy(xmax-xmin, ymax-ymin, self.radP, self.kernTypes, optInd, has_torque, ref)
-          zmax, hz, nz, zmin = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, fac=1.5, ref=ref)
+          Lz, hz, nz, a = configure_grid_and_kernels_z(zmin, zmax, hx, w, w_d, domType, fac=1.5, ref=ref)
           if domType == 'TP':
               mode = 'periodic'
           elif domType == 'DP':
@@ -84,11 +84,15 @@ class FCMJoint:
               mode = 'bottom'
           elif domType == 'DPSC':
               mode = 'slit'
+          print(f"cbeta: {cbeta[0]}, w: {w[0]}, beta: {beta[0]}")
+          alpha_d=self.radP[0]/(2*cbeta_d[0]*hx) if self.has_torque else 0
           self.par = uammd.StokesParameters(viscosity=viscosity,
                                        Lx=Lx, Ly=Ly,
-                                       zmin=zmin, zmax=zmax,
+                                       zmin=0, zmax=Lz,
                                        w=w[0], w_d=w_d[0],
                                        beta=beta[0]*w[0], beta_d=beta_d[0]*w_d[0],
+                                       alpha=self.radP[0]/(2*cbeta[0]*hx),
+                                       alpha_d =alpha_d,
                                        nx=nx, ny=ny, nz=nz, mode=mode)
           print(self.par)
           if not self.gpuCreated:
@@ -112,10 +116,12 @@ class FCMJoint:
         elif self.device == 'gpu':
             self.gpusolver.setPositions(self.precision(positions))
 
-    def Mdot(self, forces, torques=np.array(0)):
-        """Computes the product of the Mobility tensor with the provided forces and torques. 
+    def Mdot(self, forces, torques=np.empty(0)):
+        """Computes the product of the Mobility tensor with the provided forces and torques.
            If torques are not present, they are assumed to be zero and angular displacements will not be computed
         """
+        if self.has_torque == False:
+            torques=np.empty(0)
         if self.device == 'cpu':
             MF, MT  = self.cpusolver.Mdot(forces, torques)
         elif self.device == 'gpu':
@@ -123,5 +129,5 @@ class FCMJoint:
             MT = np.zeros(torques.size, self.precision)
             self.gpusolver.Mdot(forces=self.precision(forces), torques=self.precision(torques),
                                 velocities=MF, angularVelocities=MT)
-        
+
         return MF, MT

@@ -96,11 +96,14 @@ private:
     auto d_torques_ptr = useTorque?torque.raw():nullptr;
     if(fcm){
       return fcm->computeHydrodynamicDisplacements(pos.raw(), force.raw(),
-						   d_torques_ptr, numberParticles, st);
+						   d_torques_ptr, numberParticles, 0,0, st);
     }
     else if(dpstokes){
       return dpstokes->Mdot(pos.raw(), force.raw(),
 			    d_torques_ptr, numberParticles, st);
+    }
+    else{
+      throw std::runtime_error("DPStokesUAMMD is in an invalid state");
     }
   }
 public:
@@ -119,7 +122,7 @@ public:
     if(pypar.mode.compare("periodic")==0){
       auto par = createFCMParameters(pypar);
       this->fcm = std::make_shared<FCM>(par);
-      zOrigin = 0;
+      zOrigin = pypar.zmin + (pypar.zmax-pypar.zmin)*0.5;
     }
     else{
       auto par = createDPStokesParameters(pypar);
@@ -160,12 +163,12 @@ public:
       thrust::transform(thrust::cuda::par, tmp.begin(), tmp.end(), torque.begin(), Real3ToReal4());
     }
     auto mob = this->computeHydrodynamicDisplacements(useTorque);
-    thrust::copy(mob.first.begin(), mob.first.end(), (uammd::real3*)h_MF);   
+    thrust::copy(mob.first.begin(), mob.first.end(), (uammd::real3*)h_MF);
     if(mob.second.size()){
       thrust::copy(mob.second.begin(), mob.second.end(), (uammd::real3*)h_MT);
-    }    
+    }
   }
-  
+
   ~DPStokesUAMMD(){
     cudaDeviceSynchronize();
     cudaStreamDestroy(st);

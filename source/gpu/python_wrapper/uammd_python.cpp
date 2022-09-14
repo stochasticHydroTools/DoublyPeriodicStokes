@@ -94,7 +94,7 @@ PYBIND11_MODULE(uammd, m) {
       tmp->beta_d = beta_d;
       tmp->alpha = alpha;
       tmp->alpha_d = alpha_d;
-      return tmp;	
+      return tmp;
     }),"viscosity"_a  = 1.0,"Lx"_a = 0.0, "Ly"_a = 0.0, "zmin"_a = 0.0,"zmax"_a = 0.0,
 	"w"_a=1.0, "w_d"_a=1.0,
 	"alpha"_a = -1.0, "alpha_d"_a=-1.0,
@@ -125,5 +125,5 @@ PYBIND11_MODULE(uammd, m) {
 	"nz = " + std::to_string(p. nz) + "\n" +
 	"mode = " + p.mode + "\n";
     });
-    
+
 }
