@@ -1,8 +1,8 @@
 ## About this repository 
 
-This repository implements a variant on the Force Coupling Method for Stokes suspensions, based on the exponential of a semicircle (ES) kernel, see:
-[CITE THE ARTICLE HERE]
-This repo also contains code and scripts to reproduce the data for the figures in the applications section of the article (see the README inside each folder for information about each simulation).
+This repository implements a variant on the Force Coupling Method for Stokes suspensions, based on the exponential of a semicircle (ES) kernel, see:	
+https://doi.org/10.48550/arXiv.2210.01837  
+This repo also contains scripts and raw data to regenerate all of the figures (see figures/).
 
 We provide a simple python interface, but the key performance-sensitive pieces (namely FFTs, BVP solvers, and spreading and interpolation) are implemented in C++/CUDA using FFTW/cuFFT and LAPACK. One can use either the GPU and CPU versions as needed without changing calls.
 
