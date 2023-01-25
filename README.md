@@ -6,6 +6,8 @@ This repo also contains scripts and raw data to regenerate all of the figures (s
 
 We provide a simple python interface, but the key performance-sensitive pieces (namely FFTs, BVP solvers, and spreading and interpolation) are implemented in C++/CUDA using FFTW/cuFFT and LAPACK. One can use either the GPU and CPU versions as needed without changing calls.
 
+Using these codes requires carefully selecting the parameters of the ES kernel and the number of cells to achieve a required hydrodynamic radius for the particles (only monodisperse blobs are supported) with sufficient translational invariance, and to optimize the FFT performance. For CPUs, use [this python routine](https://github.com/stochasticHydroTools/DoublyPeriodicStokes/blob/main/source/cpu/python/GridAndKernelConfig.py#L449-L459), and for GPUs, use [this CUDA routine](https://github.com/RaulPPelaez/UAMMD/blob/v2.x/src/utils/Grid.cuh#L125-L176). These routines are called by our interface, but they may be useful standalone to really optimize performance before running long simulations.
+
 The doubly periodic Stokes solver for GPUs is provided by [UAMMD](https://github.com/RaulPPelaez/uammd), which is included as a submodule inside the `source/gpu` folder. **Make sure to clone this repo recursively** by doing:
 ```shell
 git clone --recursive https://github.com/stochasticHydroTools/DoublyPeriodicStokes
