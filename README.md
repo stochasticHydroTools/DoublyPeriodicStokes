@@ -56,8 +56,8 @@ command line setting will override the ones in the `Makefile`.
 
 A common python interface is provided that allows to compute the hydrodynamic displacements for a group of positions with forces and/or torques acting on them in different geometries, mainly:  
 
-	* Triply periodic, using a standard FFT-based spectral Stokes solver.
-	* Doubly periodic (either with no walls, a bottom wall or a slit channel), see paper for details.
+* Triply periodic, using a standard FFT-based spectral Stokes solver.
+* Doubly periodic (either with no walls, a bottom wall or a slit channel), see paper for details.
 
 The modules will use the ES kernel (called BM in UAMMD). Other kernels (e.g., Gaussian, as in the traditional FCM method) can be used, but this simple interface does not allow them for the moment.  
 
