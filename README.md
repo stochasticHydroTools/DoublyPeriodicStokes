@@ -8,7 +8,7 @@ We provide a simple python interface, but the key performance-sensitive pieces (
 
 The doubly periodic Stokes solver for GPUs is provided by [UAMMD](https://github.com/RaulPPelaez/uammd), which is included as a submodule inside the `source/gpu` folder. **Make sure to clone this repo recursively** by doing:
 ```shell
-git clone --recursive https://github.com/stochasticHydroTools/DPStokesTests
+git clone --recursive https://github.com/stochasticHydroTools/DoublyPeriodicStokes
 ```
 This repository provides a joint CPU/GPU python interface to use the module. 
 A CUDA/C++ version is available in UAMMD, see [here](https://uammd.readthedocs.io/en/latest/Integrator/BrownianHydrodynamics.html#doubly-periodic-stokes-dpstokes). The class DPStokesUAMMD in source/gpu/python_wrapper/uammd_wrapper.cu can also be used as an example on how to call the CUDA/C++ interface.
