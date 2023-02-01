@@ -2,7 +2,7 @@
 
 This repository implements a variant on the Force Coupling Method for Stokes suspensions, based on the exponential of a semicircle (ES) kernel, see:	
 https://doi.org/10.48550/arXiv.2210.01837  
-This repo also contains scripts and raw data to regenerate all of the figures (see figures/).
+This repo also contains scripts and raw data to regenerate the majority of the figures (see figures/). The [examples on microroller suspensions](https://github.com/stochasticHydroTools/RigidMultiblobsWall/tree/New_FCM_Lubrication/Lubrication/Lubrication_Examples) are in the [RigidMultiblobWall](https://github.com/stochasticHydroTools/RigidMultiblobsWall) repo. We are working on fully integrating the FCM doubly periodic Stokes solver into that repo.
 
 We provide a simple python interface, but the key performance-sensitive pieces (namely FFTs, BVP solvers, and spreading and interpolation) are implemented in C++/CUDA using FFTW/cuFFT and LAPACK. One can use either the GPU and CPU versions as needed without changing calls.
 
