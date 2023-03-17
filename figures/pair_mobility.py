@@ -39,7 +39,7 @@ if (domType == 'DPBW' and not ref_rpy) or domType == 'DPSC':
   solver.Initialize(numberParticles=nP, hydrodynamicRadius=radP, kernType=0,
                     domType=domType, has_torque=has_torque,
                     xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, zmin=zmin, zmax=zmax,
-                    viscosity=eta, optInd=0, ref=ref2x, useRegKernel=False)
+                    viscosity=eta, optInd=0, ref=ref2x)
 
   seps = np.array([3 * radP, 4 * radP, 8 * radP])
   nSep = seps.shape[0]
